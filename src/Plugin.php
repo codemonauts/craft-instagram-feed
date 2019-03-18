@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2019 Codemonauts
  */
 
-namespace codemonauts\instragramfeed;
+namespace codemonauts\instagramfeed;
 
 use Craft;
 use craft\services\Plugins;
@@ -56,7 +56,7 @@ class Plugin extends craft\base\Plugin
 
         Craft::info(
             Craft::t(
-                'instragramfeed',
+                'instagramfeed',
                 '{name} plugin loaded',
                 ['name' => $this->name]
             ),
@@ -71,7 +71,7 @@ class Plugin extends craft\base\Plugin
 
     protected function createSettingsModel()
     {
-        return new \codemonauts\instragramfeed\models\Settings();
+        return new \codemonauts\instagramfeed\models\Settings();
     }
 
     protected function settingsHtml()

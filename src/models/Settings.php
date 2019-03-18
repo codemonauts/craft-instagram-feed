@@ -1,6 +1,6 @@
 <?php
 
-namespace codemonauts\instragramfeed\models;
+namespace codemonauts\instagramfeed\models;
 
 use craft\base\Model;
 
