@@ -1,0 +1,40 @@
+{
+    "name": "codemonauts/craft-instagram-feed",
+    "description": "Craft 3 module to add own instragram feed to template.",
+    "version": "1.0.0",
+    "type": "craft-plugin",
+    "minimum-stability": "dev",
+    "keywords": [
+      "craft",
+      "cms",
+      "craftcms",
+      "craft-plugin"
+    ],
+    "autoload": {
+      "psr-4": {
+        "codemonauts\\instagramfeed\\": "src/"
+      }
+    },
+    "authors": [
+      {
+        "name": "Codemonauts",
+        "homepage": "https://www.codemonauts.com"
+      }
+    ],
+    "require": {
+      "craftcms/cms": "^3.0.0"
+    },
+    "support": {
+        "docs": "https://github.com/codemonauts/craft-instagram-feed/blob/master/README.md",
+        "issues": "https://github.com/codemonauts/craft-instagram-feed/issues"
+    },
+    "extra": {
+      "handle": "instagramfeed",
+      "name": "Instragram Feed",
+      "developer": "codemonauts",
+      "developerUrl": "https://codemonauts.com",
+      "hasCpSection": false,
+      "hasSettings": false,
+      "class": "codemonauts\\instagramfeed\\Plugin"
+    }
+  }

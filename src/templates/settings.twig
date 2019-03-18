@@ -1,0 +1,19 @@
+{% import "_includes/forms" as forms %}
+
+{{ forms.textField({
+	label: "Instragram UserID",
+	id: 'userId',
+	name: 'userId',
+	value: settings.userId,
+	type: 'text',
+	required: true
+}) }}
+
+{{ forms.textField({
+	label: "Instagram AccessToken",
+	id: 'accessToken',
+	name: 'accessToken',
+	value: settings.accessToken,
+	type: 'text',
+	required: false
+}) }}
