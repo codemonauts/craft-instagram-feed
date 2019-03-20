@@ -2,8 +2,6 @@
 /**
  * Craft3 Instagram Feed plugin for Craft CMS 3.x
  *
- * A Twig extension for CraftCMS (Craft3.x) that helps to get your own feed data.
- *
  * @link      https://www.codemonauts.com
  * @copyright Copyright (c) 2019 Codemonauts
  */
@@ -11,48 +9,56 @@
 namespace codemonauts\instagramfeed;
 
 use Craft;
+use craft\base\Plugin;
+use craft\helpers\UrlHelper;
 use craft\services\Plugins;
 use craft\events\PluginEvent;
+use craft\web\twig\variables\CraftVariable;
 
 use yii\base\Event;
 
+use codemonauts\instagramfeed\services\InstagramService;
+use codemonauts\instagramfeed\variables\InstagramFeedVariable;
 
-class Plugin extends craft\base\Plugin
+
+class InstagramFeed extends Plugin
 {
     // Static Properties
     // =========================================================================
-
-    public $hasCpSettings = true;
 
     public static $plugin;
 
     // Public Properties
     // =========================================================================
 
-    /**
-     * @var string
-     */
+    public $hasCpSettings = true;
     public $schemaVersion = '0.1';
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function init()
     {
         parent::init();
         self::$plugin = $this;
 
+        $this->setComponents([
+            'instagramService' => InstagramService::class,
+        ]);
+
         Event::on(
             Plugins::class,
             Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
+            function(PluginEvent $event) {
                 if ($event->plugin === $this) {
                 }
             }
         );
+
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
+            $variable = $event->sender;
+            $variable->set('instagram', InstagramFeedVariable::class);
+        });
 
         Craft::info(
             Craft::t(
@@ -64,7 +70,17 @@ class Plugin extends craft\base\Plugin
         );
     }
 
+    public function afterInstall ()
+    {
+        parent::afterInstall();
 
+        if (Craft::$app->getRequest()->getIsConsoleRequest())
+            return;
+
+        Craft::$app->getResponse()->redirect(
+            UrlHelper::cpUrl('settings/plugins/instagramfeed')
+        )->send();
+    }
 
     // Protected Methods
     // =========================================================================
@@ -78,9 +94,7 @@ class Plugin extends craft\base\Plugin
     {
         return Craft::$app->getView()->renderTemplate(
             'instagramfeed/settings',
-            [ 'settings' => $this->getSettings() ]
+            ['settings' => $this->getSettings()]
         );
     }
-
-
 }

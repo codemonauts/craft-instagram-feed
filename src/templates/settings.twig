@@ -1,19 +1,14 @@
 {% import "_includes/forms" as forms %}
 
-{{ forms.textField({
-	label: "Instragram UserID",
-	id: 'userId',
-	name: 'userId',
-	value: settings.userId,
-	type: 'text',
-	required: true
-}) }}
 
 {{ forms.textField({
-	label: "Instagram AccessToken",
-	id: 'accessToken',
-	name: 'accessToken',
-	value: settings.accessToken,
-	type: 'text',
-	required: false
+    label: "Username"|t("instagramfeed"),
+    id: 'instagramUser',
+    name: 'instagramUser',
+    instructions: "Please, enter your Instagram Username."|t("instagramfeed"),
+    value: settings.instagramUser,
+    type: 'text',
+    required: true
 }) }}
+
+<p>{{ "Make sure the entered instagram user profil is not private."|t("instagramfeed") }}</p>

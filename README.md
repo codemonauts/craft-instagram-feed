@@ -21,7 +21,6 @@ To install the plugin, follow these instructions.
 
 3. In the control panel, go to Settings → Plugins and click the “install” button for Instragram Feed.
 
-
-            
+         
 
 Brought to you by [Codemonauts](https://codemonauts.com)

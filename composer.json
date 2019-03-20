@@ -3,7 +3,6 @@
     "description": "Craft 3 module to add own instragram feed to template.",
     "version": "1.0.0",
     "type": "craft-plugin",
-    "minimum-stability": "dev",
     "keywords": [
       "craft",
       "cms",
@@ -35,6 +34,6 @@
       "developerUrl": "https://codemonauts.com",
       "hasCpSection": false,
       "hasSettings": false,
-      "class": "codemonauts\\instagramfeed\\Plugin"
+      "class": "codemonauts\\instagramfeed\\InstagramFeed"
     }
   }
