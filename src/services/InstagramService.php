@@ -13,8 +13,9 @@ class InstagramService extends Component
     {
         $uptodate = Craft::$app->getCache()->get('instagram_uptodate');
         $cachedItems = Craft::$app->getCache()->get('instagram_data');
+        $timeout = Craft::$app->getCache()->get('instagram_update_error');
 
-        if ($uptodate === false) {
+        if ($uptodate === false && $timeout === false) {
 
             $items = $this->getInstagramData();
 
@@ -23,6 +24,12 @@ class InstagramService extends Component
                 Craft::$app->getCache()->set('instagram_uptodate', true, 21600);
                 return $items;
             }
+            if(!empty($cachedItems)){
+                //If not updated expand cache time and set update to 15min to stop from retrying every request
+                Craft::$app->getCache()->set('instagram_data', $cachedItems, 2592000);
+                Craft::$app->getCache()->set('instagram_update_error', true, 900);
+            }
+
             // Future: Notify admin if empty items and cached instagram cache is too old
         }
         return $cachedItems;
