@@ -1,6 +1,6 @@
 {
     "name": "codemonauts/craft-instagram-feed",
-    "description": "Craft 3 module to add own instragram feed to template.",
+    "description": "Craft 3 plugin to receive instragram feed data as variable in templates.",
     "version": "1.0.0",
     "type": "craft-plugin",
     "keywords": [
@@ -29,7 +29,7 @@
     },
     "extra": {
       "handle": "instagramfeed",
-      "name": "Instragram Feed",
+      "name": "Instagram Feed",
       "developer": "codemonauts",
       "developerUrl": "https://codemonauts.com",
       "hasCpSection": false,
