@@ -31,8 +31,12 @@ class InstagramService extends Component
     private function getInstagramData()
     {
         $items = [];
+        $user = InstagramFeed::getInstance()->getSettings()->instagramUser;
+        if(empty($user)){
+            return false;
+        }
+        $url = sprintf("https://www.instagram.com/%s", $user);
 
-        $url = sprintf("https://www.instagram.com/%s", InstagramFeed::getInstance()->getSettings()->instagramUser);
         $html = file_get_contents($url);
 
         if ($html !== false) {
@@ -41,6 +45,9 @@ class InstagramService extends Component
             $arr = explode(';</script>', $arr[1]);
             $obj = json_decode($arr[0], true);
 
+            if(!array_key_exists('ProfilePage', $obj['entry_data'] )){
+                return false;
+            }
             $mediaArray = $obj['entry_data']['ProfilePage'][0]['graphql']['user']['edge_owner_to_timeline_media']['edges'];
 
             foreach ($mediaArray as $media) {
