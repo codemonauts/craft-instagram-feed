@@ -1,39 +1,42 @@
 {
-    "name": "codemonauts/craft-instagram-feed",
-    "description": "Craft 3 plugin to receive instragram feed data as variable in templates.",
-    "version": "1.0.0",
-    "type": "craft-plugin",
-    "keywords": [
-      "craft",
-      "cms",
-      "craftcms",
-      "craft-plugin"
-    ],
-    "autoload": {
-      "psr-4": {
-        "codemonauts\\instagramfeed\\": "src/"
-      }
-    },
-    "authors": [
-      {
-        "name": "Codemonauts",
-        "homepage": "https://www.codemonauts.com"
-      }
-    ],
-    "require": {
-      "craftcms/cms": "^3.0.0"
-    },
-    "support": {
-        "docs": "https://github.com/codemonauts/craft-instagram-feed/blob/master/README.md",
-        "issues": "https://github.com/codemonauts/craft-instagram-feed/issues"
-    },
-    "extra": {
-      "handle": "instagramfeed",
-      "name": "Instagram Feed",
-      "developer": "codemonauts",
-      "developerUrl": "https://codemonauts.com",
-      "hasCpSection": false,
-      "hasSettings": false,
-      "class": "codemonauts\\instagramfeed\\InstagramFeed"
+  "name": "codemonauts/craft-instagram-feed",
+  "description": "Craft CMS plugin to receive Instragram feed data as variable in templates.",
+  "version": "1.0.0",
+  "type": "craft-plugin",
+  "keywords": [
+    "craft",
+    "cms",
+    "craftcms",
+    "craft-plugin",
+    "instagram"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "codemonauts",
+      "homepage": "https://codemonauts.com"
     }
+  ],
+  "support": {
+    "source": "https://github.com/codemonauts/craft-instagram-feed",
+    "docs": "https://github.com/codemonauts/craft-instagram-feed/blob/master/README.md",
+    "issues": "https://github.com/codemonauts/craft-instagram-feed/issues"
+  },
+  "require": {
+    "craftcms/cms": "^3.0.0",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "codemonauts\\instagramfeed\\": "src/"
+    }
+  },
+  "extra": {
+    "handle": "instagramfeed",
+    "class": "codemonauts\\instagramfeed\\InstagramFeed",
+    "name": "Instagram Feed",
+    "description": "Receive Instagram feed data as variable in templates.",
+    "hasCpSection": false,
+    "hasSettings": false
   }
+}

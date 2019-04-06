@@ -1,11 +1,10 @@
 {% import "_includes/forms" as forms %}
 
-
 {{ forms.textField({
     label: "Username"|t("instagramfeed"),
     id: 'instagramUser',
     name: 'instagramUser',
-    instructions: "Please, enter your Instagram Username."|t("instagramfeed"),
+    instructions: "Please, enter your Instagram username."|t("instagramfeed"),
     value: settings.instagramUser,
     type: 'text',
     required: true
