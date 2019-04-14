@@ -6,9 +6,9 @@ use codemonauts\instagramfeed\InstagramFeed;
 
 class InstagramFeedVariable
 {
-    public function getFeed()
+    public function getFeed($account = null)
     {
-        return InstagramFeed::getInstance()->instagramService->getFeed();
+        return InstagramFeed::getInstance()->instagramService->getFeed($account);
     }
 }
 
