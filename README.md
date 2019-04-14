@@ -21,9 +21,10 @@ Open your terminal and go to your Craft project:
 ``` shell
 cd /path/to/project
 composer require codemonauts/codemonauts/craft-instagram-feed
+./craft install/plugin instagramfeed
 ```
 
-In the control panel, go to Settings → Plugins and click the “install” button for *Instagram feed*. Then you will be redirected to the settings page, where you can enter the username of the Instagram account you want to fetch.
+Switch to the settings page in the control panel and enter the name of the Instagram account you want to fetch.
 
 ## Usage
 
@@ -42,6 +43,16 @@ In PHP do:
 
 ``` php
 $feed = InstagramFeed::getInstance()->instagramService->getFeed();
+```
+
+You can also pass an account name to overwrite the account from the settings:
+
+``` twig
+{% set items = craft.instagram.getFeed("codemonauts") %}
+```
+
+``` php
+$feed = InstagramFeed::getInstance()->instagramService->getFeed('codemonauts');
 ```
 
 ## Caching
