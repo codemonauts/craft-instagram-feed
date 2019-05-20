@@ -35,6 +35,7 @@ To fetch the feed in your template, just iterate like this:
 <a href="https://www.instagram.com/p/{{ item.shortcode }}/" target="_blank">
   <img src="{{ item.src }}" alt="" />
 </a>
+<p>{{ item.caption }}</p>
 <p>{{ item.likes }} Likes / {{ item.comments }} Comments</p>
 {% endfor %}
 ```
