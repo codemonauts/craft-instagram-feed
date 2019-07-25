@@ -85,6 +85,7 @@ class InstagramService extends Component
             $item['likes'] = $media['node']['edge_liked_by']['count'];
             $item['comments'] = $media['node']['edge_media_to_comment']['count'];
             $item['shortcode'] = $media['node']['shortcode'];
+            $item['timestamp'] = $media['node']['taken_at_timestamp'];
             $item['caption'] = isset($media['node']['edge_media_to_caption']['edges'][0]['node']['text']) ? $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] : '';
             $items[] = $item;
         }
