@@ -15,25 +15,29 @@ class InstagramService extends Component
      * @param string $account Optional account name to fetch. If not presented, the account from the settings will be used.
      * @return array The feed data
      */
-    public function getFeed(string $account = null): array
+    public function getFeed(string $accountOrTag = null): array
     {
-        if ($account === null) {
-            $account = InstagramFeed::getInstance()->getSettings()->instagramUser;
-            if (empty($account)) {
+        if ($accountOrTag === null) {
+            $accountOrTag = InstagramFeed::getInstance()->getSettings()->instagramUser;
+            if (empty($accountOrTag)) {
                 Craft::warning('No Instagram account configured.', __METHOD__);
                 return [];
             }
         }
 
-        $account = strtolower($account);
-        $hash = md5($account);
+        $accountOrTag = strtolower($accountOrTag);
+        $hash = md5($accountOrTag);
 
         $uptodate = Craft::$app->getCache()->get('instagram_uptodate_'.$hash);
         $cachedItems = Craft::$app->getCache()->get('instagram_data_'.$hash);
         $timeout = Craft::$app->getCache()->get('instagram_update_error_'.$hash);
 
         if ($uptodate === false && $timeout === false) {
-            $items = $this->getInstagramData($account);
+			if($accountOrTag[0] == '#') {
+	            $items = $this->getInstagramTagData($accountOrTag);
+			}else{
+            	$items = $this->getInstagramData($accountOrTag);
+			}
 
             if (!empty($items)) {
                 Craft::$app->getCache()->set('instagram_data_'.$hash, $items, 2592000);
@@ -92,6 +96,48 @@ class InstagramService extends Component
         return $items;
     }
 
+	/**
+     * Fetches the feed from the public Instagram tag page.
+     *
+     * @param string $tag The tag name to fetch.
+     * @return array
+     */
+    private function getInstagramTagData(string $tag): array
+    {
+		$tag = substr($tag, 1);
+
+        $items = [];
+
+        $url = sprintf('https://www.instagram.com/explore/tags/%s/', $tag);
+        $html = @file_get_contents($url);
+        if (false === $html) {
+            Craft::error('Instagram tag data could not be fetched.', __METHOD__);
+            return [];
+        }
+
+        $arr = explode('window._sharedData = ', $html);
+        $arr = explode(';</script>', $arr[1]);
+        $obj = json_decode($arr[0], true);
+
+        if (!array_key_exists('TagPage', $obj['entry_data'])) {
+            Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+            return [];
+        }
+
+        $mediaArray = $obj['entry_data']['TagPage'][0]['graphql']['hashtag']['edge_hashtag_to_media']['edges'];
+
+        foreach ($mediaArray as $media) {
+            $item['src'] = $this->getBestPicture($media['node']['thumbnail_resources']);
+            $item['likes'] = $media['node']['edge_liked_by']['count'];
+            $item['comments'] = $media['node']['edge_media_to_comment']['count'];
+            $item['shortcode'] = $media['node']['shortcode'];
+            $item['caption'] = isset($media['node']['edge_media_to_caption']['edges'][0]['node']['text']) ? $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] : '';
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
     /**
      * Returns the best picture in size from the Instagram result array.
      *
@@ -118,4 +164,3 @@ class InstagramService extends Component
         return $url;
     }
 }
-
