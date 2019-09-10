@@ -63,7 +63,8 @@ class InstagramService extends Component
         $items = [];
 
         $url = sprintf('https://www.instagram.com/%s', $account);
-        $html = @file_get_contents($url);
+        $context = stream_context_create(['http' => ['timeout' => 5000]]);
+        $html = @file_get_contents($url, false, $context);
         if (false === $html) {
             Craft::error('Instagram profile data could not be fetched. Wrong account name or not a public profile.', __METHOD__);
             return [];
