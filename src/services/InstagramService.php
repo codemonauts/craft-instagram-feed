@@ -33,11 +33,11 @@ class InstagramService extends Component
         $timeout = Craft::$app->getCache()->get('instagram_update_error_'.$hash);
 
         if ($uptodate === false && $timeout === false) {
-			if($accountOrTag[0] == '#') {
-	            $items = $this->getInstagramTagData($accountOrTag);
-			}else{
-            	$items = $this->getInstagramData($accountOrTag);
-			}
+            if ($accountOrTag[0] == '#') {
+                $items = $this->getInstagramTagData($accountOrTag);
+            } else {
+                $items = $this->getInstagramAccountData($accountOrTag);
+            }
 
             if (!empty($items)) {
                 Craft::$app->getCache()->set('instagram_data_'.$hash, $items, 2592000);
@@ -62,7 +62,7 @@ class InstagramService extends Component
      * @param string $account The account name to fetch.
      * @return array
      */
-    private function getInstagramData(string $account): array
+    private function getInstagramAccountData(string $account): array
     {
         $items = [];
 
@@ -111,7 +111,8 @@ class InstagramService extends Component
         $items = [];
 
         $url = sprintf('https://www.instagram.com/explore/tags/%s/', $tag);
-        $html = @file_get_contents($url);
+        $html = $this->fetchInstagramPage($url);
+
         if (false === $html) {
             Craft::error('Instagram tag data could not be fetched.', __METHOD__);
             return [];
@@ -133,6 +134,7 @@ class InstagramService extends Component
             $item['likes'] = $media['node']['edge_liked_by']['count'];
             $item['comments'] = $media['node']['edge_media_to_comment']['count'];
             $item['shortcode'] = $media['node']['shortcode'];
+            $item['timestamp'] = $media['node']['taken_at_timestamp'];
             $item['caption'] = isset($media['node']['edge_media_to_caption']['edges'][0]['node']['text']) ? $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] : '';
             $items[] = $item;
         }
