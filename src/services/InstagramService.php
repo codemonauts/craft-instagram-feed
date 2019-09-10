@@ -4,7 +4,6 @@ namespace codemonauts\instagramfeed\services;
 
 use Craft;
 use craft\base\Component;
-
 use codemonauts\instagramfeed\InstagramFeed;
 
 class InstagramService extends Component
@@ -12,7 +11,8 @@ class InstagramService extends Component
     /**
      * Returns the current Instagram feed of the configured account.
      *
-     * @param string $account Optional account name to fetch. If not presented, the account from the settings will be used.
+     * @param string $accountOrTag Optional account name or hashtag to fetch. If not presented, the account from the settings will be used.
+     *
      * @return array The feed data
      */
     public function getFeed(string $accountOrTag = null): array
@@ -21,6 +21,7 @@ class InstagramService extends Component
             $accountOrTag = InstagramFeed::getInstance()->getSettings()->instagramUser;
             if (empty($accountOrTag)) {
                 Craft::warning('No Instagram account configured.', __METHOD__);
+
                 return [];
             }
         }
@@ -28,9 +29,9 @@ class InstagramService extends Component
         $accountOrTag = strtolower($accountOrTag);
         $hash = md5($accountOrTag);
 
-        $uptodate = Craft::$app->getCache()->get('instagram_uptodate_'.$hash);
-        $cachedItems = Craft::$app->getCache()->get('instagram_data_'.$hash);
-        $timeout = Craft::$app->getCache()->get('instagram_update_error_'.$hash);
+        $uptodate = Craft::$app->getCache()->get('instagram_uptodate_' . $hash);
+        $cachedItems = Craft::$app->getCache()->get('instagram_data_' . $hash);
+        $timeout = Craft::$app->getCache()->get('instagram_update_error_' . $hash);
 
         if ($uptodate === false && $timeout === false) {
             if ($accountOrTag[0] == '#') {
@@ -40,16 +41,16 @@ class InstagramService extends Component
             }
 
             if (!empty($items)) {
-                Craft::$app->getCache()->set('instagram_data_'.$hash, $items, 2592000);
-                Craft::$app->getCache()->set('instagram_uptodate_'.$hash, true, 21600);
+                Craft::$app->getCache()->set('instagram_data_' . $hash, $items, 2592000);
+                Craft::$app->getCache()->set('instagram_uptodate_' . $hash, true, 21600);
 
                 return $items;
             }
 
             if (!empty($cachedItems)) {
                 // If not updated expand cache time and set update to 15min to stop from retrying every request
-                Craft::$app->getCache()->set('instagram_data_'.$hash, $cachedItems, 2592000);
-                Craft::$app->getCache()->set('instagram_update_error_'.$hash, true, 900);
+                Craft::$app->getCache()->set('instagram_data_' . $hash, $cachedItems, 2592000);
+                Craft::$app->getCache()->set('instagram_update_error_' . $hash, true, 900);
             }
         }
 
@@ -60,6 +61,7 @@ class InstagramService extends Component
      * Fetches the feed from the public Instagram profile page.
      *
      * @param string $account The account name to fetch.
+     *
      * @return array
      */
     private function getInstagramAccountData(string $account): array
@@ -71,6 +73,7 @@ class InstagramService extends Component
 
         if (false === $html) {
             Craft::error('Instagram profile data could not be fetched. Wrong account name or not a public profile.', __METHOD__);
+
             return [];
         }
 
@@ -80,6 +83,7 @@ class InstagramService extends Component
 
         if (!array_key_exists('ProfilePage', $obj['entry_data'])) {
             Craft::error('Instagram profile data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+
             return [];
         }
 
@@ -98,15 +102,16 @@ class InstagramService extends Component
         return $items;
     }
 
-	/**
+    /**
      * Fetches the feed from the public Instagram tag page.
      *
      * @param string $tag The tag name to fetch.
+     *
      * @return array
      */
     private function getInstagramTagData(string $tag): array
     {
-		$tag = substr($tag, 1);
+        $tag = substr($tag, 1);
 
         $items = [];
 
@@ -115,6 +120,7 @@ class InstagramService extends Component
 
         if (false === $html) {
             Craft::error('Instagram tag data could not be fetched.', __METHOD__);
+
             return [];
         }
 
@@ -124,6 +130,7 @@ class InstagramService extends Component
 
         if (!array_key_exists('TagPage', $obj['entry_data'])) {
             Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+
             return [];
         }
 
