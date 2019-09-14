@@ -37,6 +37,8 @@ class InstagramService extends Component
         $timeout = Craft::$app->getCache()->get('instagram_update_error_' . $hash);
 
         if ($uptodate === false && $timeout === false) {
+            Craft::debug('No cached data found, start fetching Instagram page.', __METHOD__);
+
             if ($accountOrTag[0] == '#') {
                 $items = $this->getInstagramTagData($accountOrTag);
             } else {
@@ -44,6 +46,7 @@ class InstagramService extends Component
             }
 
             if (!empty($items)) {
+                Craft::debug('Items found, caching them.', __METHOD__);
                 Craft::$app->getCache()->set('instagram_data_' . $hash, $items, 2592000);
                 Craft::$app->getCache()->set('instagram_uptodate_' . $hash, true, 21600);
 
@@ -52,10 +55,13 @@ class InstagramService extends Component
 
             if (!empty($cachedItems)) {
                 // If not updated expand cache time and set update to 15min to stop from retrying every request
+                Craft::debug('Error fetching new data from Instagram, using existing cached data and expanding cache time. Stopping requests for 15 minutes.', __METHOD__);
                 Craft::$app->getCache()->set('instagram_data_' . $hash, $cachedItems, 2592000);
                 Craft::$app->getCache()->set('instagram_update_error_' . $hash, true, 900);
             }
         }
+
+        Craft::debug('Returning cached items.', __METHOD__);
 
         return is_array($cachedItems) ? $cachedItems : [];
     }
@@ -69,8 +75,6 @@ class InstagramService extends Component
      */
     private function getInstagramAccountData(string $account): array
     {
-        $items = [];
-
         $url = sprintf('https://www.instagram.com/%s', $account);
         $html = $this->fetchInstagramPage($url);
 
@@ -79,6 +83,8 @@ class InstagramService extends Component
 
             return [];
         }
+
+        Craft::debug($html, __METHOD__);
 
         $arr = explode('window._sharedData = ', $html);
         $arr = explode(';</script>', $arr[1]);
@@ -91,6 +97,8 @@ class InstagramService extends Component
         }
 
         $mediaArray = $obj['entry_data']['ProfilePage'][0]['graphql']['user']['edge_owner_to_timeline_media']['edges'];
+
+        $items = [];
 
         foreach ($mediaArray as $media) {
             $item['src'] = $this->getBestPicture($media['node']['thumbnail_resources']);
@@ -126,6 +134,8 @@ class InstagramService extends Component
 
             return [];
         }
+
+        Craft::debug($html, __METHOD__);
 
         $arr = explode('window._sharedData = ', $html);
         $arr = explode(';</script>', $arr[1]);
