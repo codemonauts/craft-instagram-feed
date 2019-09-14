@@ -10,5 +10,10 @@ class InstagramFeedVariable
     {
         return InstagramFeed::getInstance()->instagramService->getFeed($account);
     }
+
+    public function getAccount()
+    {
+        return InstagramFeed::getInstance()->getSettings()->instagramUser;
+    }
 }
 
