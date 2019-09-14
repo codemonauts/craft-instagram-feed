@@ -28,7 +28,7 @@ Switch to the settings page in the control panel and enter the name of the Insta
 
 ## Usage
 
-To fetch the feed in your template, just iterate like this:
+To fetch the feed, configured in settings, in your template, just iterate like this:
 
 ``` twig
 {% for item in craft.instagram.getFeed() %}
@@ -46,14 +46,48 @@ In PHP do:
 $feed = InstagramFeed::getInstance()->instagramService->getFeed();
 ```
 
-You can also pass an account name to overwrite the account from the settings:
+You can also get the current configured Instagram account (or hash tag) in your templates:
 
 ``` twig
+{{ craft.instagram.getAccount() }}
+```
+
+You can also pass an account name or hash tag to overwrite the account from the settings:
+
+``` twig
+{# fetch account #}
 {% set items = craft.instagram.getFeed("codemonauts") %}
+
+{# fetch hash tag #}
+{% set items = craft.instagram.getFeed("#mrmcd2019") %}
 ```
 
 ``` php
+// fetch account
 $feed = InstagramFeed::getInstance()->instagramService->getFeed('codemonauts');
+
+// fetch hash tag
+$feed = InstagramFeed::getInstance()->instagramService->getFeed('#mrmcd2019');
+```
+
+## Settings
+
+You can make some more configuration settings in a config file placed in your CraftCMS config directory. You can find the most recent version in src/config.php. You have to name the file ``ìnstagramfeed.php``.
+
+``` php
+
+// User name or hash tag to fetch from Instagram.
+'instagramUser' => '',
+
+// Timeout in seconds waiting for the Instagram page to load.
+'timeout' => 5,
+
+// Use Guzzle instead of php's file stream
+'useGuzzle' => false,
+
+// Using your own user agent string, remove this array key to use a common user agent of a well known browser
+'userAgent' => '',
+
 ```
 
 ## Caching

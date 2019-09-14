@@ -1,5 +1,16 @@
 # Instagram Feed Changelog
 
+## 1.0.3 - xxx
+### Added
+- Timestamps of the photos (thanks to @devotoare)
+- Timeout fetching the Instgram page, default to 5 seconds, can be changed in the config file (thanks to @mhayes14)
+- Support for hashtags (thanks to @JeroenOnstuimig)
+- Function to return configured account name
+- Guzzle http client
+- Debugging Output (log level debug)
+### Fixed
+- Some typos (thanks to @ryanpcmcquen)
+
 ## 1.0.2 - 2019-05-20
 ### Added
 - Captions of posts
