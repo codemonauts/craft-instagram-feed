@@ -5,6 +5,9 @@ namespace codemonauts\instagramfeed\services;
 use Craft;
 use craft\base\Component;
 use codemonauts\instagramfeed\InstagramFeed;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 
 class InstagramService extends Component
 {
@@ -182,11 +185,45 @@ class InstagramService extends Component
      *
      * @return false|string
      */
-    private function fetchInstagramPage($url)
+    private function fetchInstagramPage($url): string
     {
-        $timeout = InstagramFeed::getInstance()->getSettings()->timeout;
-        $context = stream_context_create(['http' => ['timeout' => $timeout]]);
+        $settings = InstagramFeed::getInstance()->getSettings();
 
-        return @file_get_contents($url, false, $context);
+        if (!$settings->useGuzzle) {
+            Craft::debug('Using php file stream to fetch Instagram page.', __METHOD__);
+
+            $context = stream_context_create(['http' => [
+                'timeout' => $settings->timeout * 1000,
+                'user_agent' => $settings->userAgent,
+                'headers' => [
+                    'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
+                ],
+            ]]);
+
+            return @file_get_contents($url, false, $context);
+        }
+
+        Craft::debug('Using Guzzle to fetch Instagram page.', __METHOD__);
+
+        $client = new Client();
+        try {
+            $response = $client->get($url, [
+                'timeout' => $settings->timeout,
+                'headers' => [
+                    'User-Agent' => $settings->userAgent,
+                    'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
+                ],
+            ]);
+        } catch (ClientException $e) {
+            Craft::error($e->getMessage(), __METHOD__);
+
+            return false;
+        } catch (ServerException $e) {
+            Craft::error($e->getMessage(), __METHOD__);
+
+            return false;
+        }
+
+        return $response->getBody();
     }
 }

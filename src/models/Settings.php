@@ -12,9 +12,19 @@ class Settings extends Model
     public $instagramUser = '';
 
     /**
-     * @var int Timeout waiting for the Instagram page to load in microseconds
+     * @var int Timeout in seconds waiting for the Instagram page to load
      */
-    public $timeout = 5000;
+    public $timeout = 5;
+
+    /**
+     * @var boolean Use Guzzle instead of php's file stream to fetch the Instagram page
+     */
+    public $useGuzzle = false;
+
+    /**
+     * @var string User Agent to use when fetching the Instagram page
+     */
+    public $userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
 
     /**
      * @inheritdoc
@@ -22,8 +32,10 @@ class Settings extends Model
     public function rules()
     {
         return [
-            [['instagramUser', 'timeout'], 'required'],
-            ['timeout', 'integer', 'min' => 1000],
+            [['instagramUser', 'timeout', 'userAgent'], 'required'],
+            ['timeout', 'float', 'min' => 1],
+            ['useGuzzle', 'boolean'],
+            ['userAgent', 'string'],
         ];
     }
 }
