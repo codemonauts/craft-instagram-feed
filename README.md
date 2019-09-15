@@ -102,7 +102,7 @@ If you run your site in devMode, the plugin logs some informations we need to as
 
 ### Blocked requests
 
-As you know, Instagram is a walled garden and they are not very happy to see their data on other sites. And they are heavily working to block requests not coming from their platforms. So anytime something can break in this plugin, when trying to fetch the feed.
+As you know, Instagram is a Walled Garden and they are not very happy to see their data on other sites. And they are heavily working on blocking requests not coming from their platforms. So something can break in this plugin at anytime, when trying to fetch the feed.
 
 If you see an error like
 
