@@ -100,9 +100,9 @@ Feel free to open an issue on GitHub. We will help you as soon as possible.
 
 If you run your site in devMode, the plugin logs some informations we need to assist you. So please have this logs on hand if you open an issue.
 
-As you know, Instagram is a walled garden and they are not very happy to see their data on other sites. And they are heavily working to block requests not coming from their platforms. So anytime something can break in this plugin, when trying to fetch the feed.
-
 ### Blocked requests
+
+As you know, Instagram is a walled garden and they are not very happy to see their data on other sites. And they are heavily working to block requests not coming from their platforms. So anytime something can break in this plugin, when trying to fetch the feed.
 
 If you see an error like
 
