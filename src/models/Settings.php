@@ -33,7 +33,7 @@ class Settings extends Model
     {
         return [
             [['instagramUser', 'timeout', 'userAgent'], 'required'],
-            ['timeout', 'float', 'min' => 1],
+            ['timeout', 'double', 'min' => 1],
             ['useGuzzle', 'boolean'],
             ['userAgent', 'string'],
         ];

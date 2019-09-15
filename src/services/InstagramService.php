@@ -84,11 +84,10 @@ class InstagramService extends Component
             return [];
         }
 
-        Craft::debug($html, __METHOD__);
-
-        $arr = explode('window._sharedData = ', $html);
-        $arr = explode(';</script>', $arr[1]);
-        $obj = json_decode($arr[0], true);
+        $obj = $this->parseInstagramResponse($html);
+        if (false === $obj) {
+            return [];
+        }
 
         if (!array_key_exists('ProfilePage', $obj['entry_data'])) {
             Craft::error('Instagram profile data could not be fetched. Maybe the site structure has changed.', __METHOD__);
@@ -135,11 +134,10 @@ class InstagramService extends Component
             return [];
         }
 
-        Craft::debug($html, __METHOD__);
-
-        $arr = explode('window._sharedData = ', $html);
-        $arr = explode(';</script>', $arr[1]);
-        $obj = json_decode($arr[0], true);
+        $obj = $this->parseInstagramResponse($html);
+        if (false === $obj) {
+            return [];
+        }
 
         if (!array_key_exists('TagPage', $obj['entry_data'])) {
             Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', __METHOD__);
@@ -203,10 +201,10 @@ class InstagramService extends Component
             Craft::debug('Using php file stream to fetch Instagram page.', __METHOD__);
 
             $context = stream_context_create(['http' => [
-                'timeout' => $settings->timeout * 1000,
-                'user_agent' => $settings->userAgent,
+                'timeout' => $settings->timeout,
                 'headers' => [
                     'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
+                    'User-Agent' => $settings->userAgent,
                 ],
             ]]);
 
@@ -220,8 +218,8 @@ class InstagramService extends Component
             $response = $client->get($url, [
                 'timeout' => $settings->timeout,
                 'headers' => [
-                    'User-Agent' => $settings->userAgent,
                     'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
+                    'User-Agent' => $settings->userAgent,
                 ],
             ]);
         } catch (ClientException $e) {
@@ -235,5 +233,34 @@ class InstagramService extends Component
         }
 
         return $response->getBody();
+    }
+
+    /**
+     * Funktion to parse the response body from Instagram
+     *
+     * @param string $response Response body from Instagram
+     *
+     * @return array|boolean
+     */
+    private function parseInstagramResponse($response)
+    {
+        Craft::debug($response, __METHOD__);
+
+        $arr = explode('window._sharedData = ', $response);
+
+        if (!isset($arr[1])) {
+            // Check if Instagram returned a statement and not a valid page
+            $response = json_decode($response);
+            if (isset($response->errors)) {
+                Craft::error('Instagram responsed with an error: '.join(' ', $response->errors->error), __METHOD__);
+            } else {
+                Craft::error('Unknown response from Instagram. Please check debug output in devMode.', __METHOD__);
+            }
+
+            return false;
+        }
+
+        $arr = explode(';</script>', $arr[1]);
+        return json_decode($arr[0], true);
     }
 }

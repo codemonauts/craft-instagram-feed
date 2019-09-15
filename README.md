@@ -20,7 +20,7 @@ Open your terminal and go to your Craft project:
 
 ``` shell
 cd /path/to/project
-composer require codemonauts/codemonauts/craft-instagram-feed
+composer require codemonauts/craft-instagram-feed
 ./craft install/plugin instagramfeed
 ```
 
@@ -93,5 +93,23 @@ You can make some more configuration settings in a config file placed in your Cr
 ## Caching
 
 The feed will be cached for 1 month but will be checked and updated evey 6 hours. If the update fails, the cached feed is used and the update stops for 15 minutes before checking again. 
+
+## It's not working...
+
+Feel free to open an issue on GitHub. We will help you as soon as possible.
+
+If you run your site in devMode, the plugin logs some informations we need to assist you. So please have this logs on hand if you open an issue.
+
+As you know, Instagram is a walled garden and they are not very happy to see their data on other sites. And they are heavily working to block requests not coming from their platforms. So anytime something can break in this plugin, when trying to fetch the feed.
+
+### Blocked requests
+
+If you see an error like
+
+```
+0000-00-00 00:00:00 [][][][error][codemonauts\instagramfeed\services\InstagramService::parseInstagramResponse] Instagram responsed with an error: Sorry, there was a problem with your request. 
+```
+
+your IP addresses could be blacklisted by Instagram. Please check first, if this happens on other IPs / IP ranges as well.
 
 With ❤ by [codemonauts](https://codemonauts.com)

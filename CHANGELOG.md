@@ -1,6 +1,12 @@
 # Instagram Feed Changelog
 
-## 1.0.3 - xxx
+## 1.0.4 - 2019-09-15
+### Fixed
+- Settings in CP could not be saved due to a validation rule.
+- Handle Instagram error response and return empty feed.
+- Fixed timeout for file stream (float not microseconds).
+
+## 1.0.3 - 2019-09-14
 ### Added
 - Timestamps of the photos (thanks to @devotoare)
 - Timeout fetching the Instgram page, default to 5 seconds, can be changed in the config file (thanks to @mhayes14)
