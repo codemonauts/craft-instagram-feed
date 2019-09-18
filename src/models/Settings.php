@@ -22,6 +22,11 @@ class Settings extends Model
     public $useGuzzle = false;
 
     /**
+     * @var boolean Dump Instagram response in file for debugging purpose
+     */
+    public $dump = false;
+
+    /**
      * @var string User Agent to use when fetching the Instagram page
      */
     public $userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
@@ -35,6 +40,7 @@ class Settings extends Model
             [['instagramUser', 'timeout', 'userAgent'], 'required'],
             ['timeout', 'double', 'min' => 1],
             ['useGuzzle', 'boolean'],
+            ['dump', 'boolean'],
             ['userAgent', 'string'],
         ];
     }

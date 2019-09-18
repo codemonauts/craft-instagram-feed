@@ -5,6 +5,7 @@ namespace codemonauts\instagramfeed\services;
 use Craft;
 use craft\base\Component;
 use codemonauts\instagramfeed\InstagramFeed;
+use craft\helpers\FileHelper;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
@@ -21,13 +22,15 @@ class InstagramService extends Component
     public function getFeed(string $accountOrTag = null): array
     {
         if ($accountOrTag === null) {
-            $accountOrTag = InstagramFeed::getInstance()->getSettings()->instagramUser;
+            $accountOrTag = trim(InstagramFeed::getInstance()->getSettings()->instagramUser);
             if (empty($accountOrTag)) {
                 Craft::warning('No Instagram account configured.', __METHOD__);
 
                 return [];
             }
         }
+
+        Craft::debug('Get feed for "'.$accountOrTag.'"', __METHOD__);
 
         $accountOrTag = strtolower($accountOrTag);
         $hash = md5($accountOrTag);
@@ -244,6 +247,13 @@ class InstagramService extends Component
      */
     private function parseInstagramResponse($response)
     {
+        if (InstagramFeed::getInstance()->getSettings()->dump) {
+            $timestamp = time();
+            $path = Craft::$app->path->getStoragePath().'/runtime/instagramfeed';
+            FileHelper::writeToFile($path.'/'.$timestamp, $response);
+            Craft::debug('Wrote Instagram response to '.$path.'/'.$timestamp);
+        }
+
         Craft::debug($response, __METHOD__);
 
         $arr = explode('window._sharedData = ', $response);

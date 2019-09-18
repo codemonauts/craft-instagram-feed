@@ -85,6 +85,9 @@ You can make some more configuration settings in a config file placed in your Cr
 // Use Guzzle instead of php's file stream
 'useGuzzle' => false,
 
+// Dump Instagram response to file for debugging purpose.
+'dump' => false,
+
 // Using your own user agent string, remove this array key to use a common user agent of a well known browser
 'userAgent' => '',
 
