@@ -284,7 +284,9 @@ class InstagramService extends Component
             $item['comments'] = $media['node']['edge_media_to_comment']['count'];
             $item['shortcode'] = $media['node']['shortcode'];
             $item['timestamp'] = $media['node']['taken_at_timestamp'];
-            $item['caption'] = isset($media['node']['edge_media_to_caption']['edges'][0]['node']['text']) ? $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] : '';
+            $item['caption'] = $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] ?? '';
+            $item['isVideo'] = (bool)$media['node']['is_video'];
+            $item['video_view_count'] = $media['node']['video_view_count'] ?? 0;
             $items[] = $item;
         }
 
