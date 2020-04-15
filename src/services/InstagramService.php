@@ -274,7 +274,7 @@ class InstagramService extends Component
      *
      * @return array
      */
-    private function flattenMediaArray($mediaArray)
+    private function flattenMediaArray($mediaArray): array
     {
         $items = [];
 
