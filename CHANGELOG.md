@@ -4,8 +4,10 @@
 ### Added
 - Switch to write a dump file of the response from Instagram
 - Switch to use a proxy (beta) 
+
 ### Changed
 - Improve documentation
+
 ### Fixed
 - HTTP headers send with file_get_contents
 
@@ -23,6 +25,7 @@
 - Function to return configured account name
 - Guzzle http client
 - Debugging Output (log level debug)
+
 ### Fixed
 - Some typos (thanks to @ryanpcmcquen)
 
@@ -34,6 +37,7 @@
 ### Added
 - Overwrite account name on function call
 - Add some more logging
+
 ### Changed
 - Cache account data by account name
 
