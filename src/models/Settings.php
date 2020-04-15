@@ -12,6 +12,16 @@ class Settings extends Model
     public $instagramUser = '';
 
     /**
+     * @var boolean Use codemonauts proxy to get the Instagram page
+     */
+    public $useProxy = false;
+
+    /**
+     * @var string The proxy key to use for authentication
+     */
+    public $proxyKey = '';
+
+    /**
      * @var int Timeout in seconds waiting for the Instagram page to load
      */
     public $timeout = 5;
@@ -39,9 +49,9 @@ class Settings extends Model
         return [
             [['instagramUser', 'timeout', 'userAgent'], 'required'],
             ['timeout', 'double', 'min' => 1],
-            ['useGuzzle', 'boolean'],
+            [['useGuzzle', 'useProxy'], 'boolean'],
             ['dump', 'boolean'],
-            ['userAgent', 'string'],
+            [['userAgent', 'proxyKey'], 'string'],
         ];
     }
 }

@@ -10,4 +10,12 @@
     required: true
 }) }}
 
+{% if settings.useProxy %}
+    {% if settings.proxyKey == "" %}
+    <p style="color: red;">{{ "Proxy usage is enabled but the proxy key is empty, so the proxy will not be used." }}</p>
+    {% else %}
+    <p style="color: green;">{{ "Proxy will be used." }}</p>
+    {% endif %}
+{% endif %}
+
 <p>{{ "Make sure the entered Instagram user profile is not private."|t("instagramfeed") }}</p>

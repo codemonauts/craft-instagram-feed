@@ -78,8 +78,7 @@ class InstagramService extends Component
      */
     private function getInstagramAccountData(string $account): array
     {
-        $url = sprintf('https://www.instagram.com/%s', $account);
-        $html = $this->fetchInstagramPage($url);
+        $html = $this->fetchInstagramPage($account);
 
         if (false === $html) {
             Craft::error('Instagram profile data could not be fetched. Wrong account name or not a public profile.', __METHOD__);
@@ -128,8 +127,8 @@ class InstagramService extends Component
 
         $items = [];
 
-        $url = sprintf('https://www.instagram.com/explore/tags/%s/', $tag);
-        $html = $this->fetchInstagramPage($url);
+        $path = sprintf('explore/tags/%s/', $tag);
+        $html = $this->fetchInstagramPage($path);
 
         if (false === $html) {
             Craft::error('Instagram tag data could not be fetched.', __METHOD__);
@@ -192,24 +191,35 @@ class InstagramService extends Component
     /**
      * Fetches the page from a given URL
      *
-     * @param string $url The URL to fetch
+     * @param string $path The path to fetch
      *
      * @return false|string
      */
-    private function fetchInstagramPage($url): string
+    private function fetchInstagramPage($path): string
     {
         $settings = InstagramFeed::getInstance()->getSettings();
+
+        if ($settings->useProxy && $settings->proxyKey !== '') {
+            $url = 'https://igproxy.codemonauts.com/' . $path;
+        } else {
+            $url = 'https://www.instagram.com/' . $path;
+        }
 
         if (!$settings->useGuzzle) {
             Craft::debug('Using php file stream to fetch Instagram page.', __METHOD__);
 
-            $context = stream_context_create(['http' => [
-                'timeout' => $settings->timeout,
-                'headers' => [
-                    'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
-                    'User-Agent' => $settings->userAgent,
+            $streamOptions = [
+                'http' => [
+                    'timeout' => $settings->timeout,
+                    'header' => "Accept-Language: en-US;q=0.9,en;q=0.8\r\nUser-Agent: " . $settings->userAgent . "\r\n",
                 ],
-            ]]);
+            ];
+
+            if ($settings->useProxy && $settings->proxyKey !== '') {
+                $streamOptions['http']['header'] .= 'Authorization: ' . $settings->proxyKey . "\r\n";
+            }
+
+            $context = stream_context_create($streamOptions);
 
             return @file_get_contents($url, false, $context);
         }
@@ -217,14 +227,21 @@ class InstagramService extends Component
         Craft::debug('Using Guzzle to fetch Instagram page.', __METHOD__);
 
         $client = new Client();
+
+        $guzzleOptions = [
+            'timeout' => $settings->timeout,
+            'headers' => [
+                'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
+                'User-Agent' => $settings->userAgent,
+            ],
+        ];
+
+        if ($settings->useProxy && $settings->proxyKey !== '') {
+            $guzzleOptions['headers']['Authorization'] = $settings->proxyKey;
+        }
+
         try {
-            $response = $client->get($url, [
-                'timeout' => $settings->timeout,
-                'headers' => [
-                    'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
-                    'User-Agent' => $settings->userAgent,
-                ],
-            ]);
+            $response = $client->get($url, $guzzleOptions);
         } catch (ClientException $e) {
             Craft::error($e->getMessage(), __METHOD__);
 
