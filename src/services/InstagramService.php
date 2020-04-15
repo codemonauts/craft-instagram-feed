@@ -42,7 +42,7 @@ class InstagramService extends Component
         if ($uptodate === false && $timeout === false) {
             Craft::debug('No cached data found, start fetching Instagram page.', __METHOD__);
 
-            if ($accountOrTag[0] == '#') {
+            if (0 === strpos($accountOrTag, '#')) {
                 $items = $this->getInstagramTagData($accountOrTag);
             } else {
                 $items = $this->getInstagramAccountData($accountOrTag);
@@ -99,19 +99,7 @@ class InstagramService extends Component
 
         $mediaArray = $obj['entry_data']['ProfilePage'][0]['graphql']['user']['edge_owner_to_timeline_media']['edges'];
 
-        $items = [];
-
-        foreach ($mediaArray as $media) {
-            $item['src'] = $this->getBestPicture($media['node']['thumbnail_resources']);
-            $item['likes'] = $media['node']['edge_liked_by']['count'];
-            $item['comments'] = $media['node']['edge_media_to_comment']['count'];
-            $item['shortcode'] = $media['node']['shortcode'];
-            $item['timestamp'] = $media['node']['taken_at_timestamp'];
-            $item['caption'] = isset($media['node']['edge_media_to_caption']['edges'][0]['node']['text']) ? $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] : '';
-            $items[] = $item;
-        }
-
-        return $items;
+        return $this->flattenMediaArray($mediaArray);
     }
 
     /**
@@ -124,8 +112,6 @@ class InstagramService extends Component
     private function getInstagramTagData(string $tag): array
     {
         $tag = substr($tag, 1);
-
-        $items = [];
 
         $path = sprintf('explore/tags/%s/', $tag);
         $html = $this->fetchInstagramPage($path);
@@ -149,17 +135,7 @@ class InstagramService extends Component
 
         $mediaArray = $obj['entry_data']['TagPage'][0]['graphql']['hashtag']['edge_hashtag_to_media']['edges'];
 
-        foreach ($mediaArray as $media) {
-            $item['src'] = $this->getBestPicture($media['node']['thumbnail_resources']);
-            $item['likes'] = $media['node']['edge_liked_by']['count'];
-            $item['comments'] = $media['node']['edge_media_to_comment']['count'];
-            $item['shortcode'] = $media['node']['shortcode'];
-            $item['timestamp'] = $media['node']['taken_at_timestamp'];
-            $item['caption'] = isset($media['node']['edge_media_to_caption']['edges'][0]['node']['text']) ? $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] : '';
-            $items[] = $item;
-        }
-
-        return $items;
+        return $this->flattenMediaArray($mediaArray);
     }
 
     /**
@@ -256,7 +232,7 @@ class InstagramService extends Component
     }
 
     /**
-     * Funktion to parse the response body from Instagram
+     * Function to parse the response body from Instagram
      *
      * @param string $response Response body from Instagram
      *
@@ -279,7 +255,7 @@ class InstagramService extends Component
             // Check if Instagram returned a statement and not a valid page
             $response = json_decode($response);
             if (isset($response->errors)) {
-                Craft::error('Instagram responsed with an error: '.join(' ', $response->errors->error), __METHOD__);
+                Craft::error('Instagram responsed with an error: '.implode(' ', $response->errors->error), __METHOD__);
             } else {
                 Craft::error('Unknown response from Instagram. Please check debug output in devMode.', __METHOD__);
             }
@@ -289,5 +265,29 @@ class InstagramService extends Component
 
         $arr = explode(';</script>', $arr[1]);
         return json_decode($arr[0], true);
+    }
+
+    /**
+     * Function to flatten the Instagram response to simple array
+     *
+     * @param array $mediaArray The Instagram response array
+     *
+     * @return array
+     */
+    private function flattenMediaArray($mediaArray)
+    {
+        $items = [];
+
+        foreach ($mediaArray as $media) {
+            $item['src'] = $this->getBestPicture($media['node']['thumbnail_resources']);
+            $item['likes'] = $media['node']['edge_liked_by']['count'];
+            $item['comments'] = $media['node']['edge_media_to_comment']['count'];
+            $item['shortcode'] = $media['node']['shortcode'];
+            $item['timestamp'] = $media['node']['taken_at_timestamp'];
+            $item['caption'] = isset($media['node']['edge_media_to_caption']['edges'][0]['node']['text']) ? $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] : '';
+            $items[] = $item;
+        }
+
+        return $items;
     }
 }

@@ -1,5 +1,14 @@
 # Instagram Feed Changelog
 
+## 1.0.5 - 2020-04-15
+### Added
+- Switch to write a dump file of the response from Instagram
+- Switch to use a proxy (beta) 
+### Changed
+- Improve documentation
+### Fixed
+- HTTP headers send with file_get_contents
+
 ## 1.0.4 - 2019-09-15
 ### Fixed
 - Settings in CP could not be saved due to a validation rule.

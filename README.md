@@ -103,6 +103,8 @@ Feel free to open an issue on GitHub. We will help you as soon as possible.
 
 If you run your site in devMode, the plugin logs some informations we need to assist you. So please have this logs on hand if you open an issue.
 
+You can enable the `dump` switch in your config file (see above). It will write the response of the request into separate files (one per request) in `CRAFT_STORAGE_PATH/runtime/instagramfeed`. Here you can check if you get a valid response from Instagram.
+
 ### Blocked requests
 
 As you know, Instagram is a Walled Garden and they are not very happy to see their data on other sites. And they are heavily working on blocking requests not coming from their platforms. So something can break in this plugin at anytime, when trying to fetch the feed.
