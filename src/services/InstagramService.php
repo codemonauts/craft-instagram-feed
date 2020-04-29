@@ -78,7 +78,7 @@ class InstagramService extends Component
      */
     private function getInstagramAccountData(string $account): array
     {
-        $html = $this->fetchInstagramPage($account);
+        $html = $this->fetchInstagramPage($account . '/');
 
         if (false === $html) {
             Craft::error('Instagram profile data could not be fetched. Wrong account name or not a public profile.', __METHOD__);
