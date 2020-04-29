@@ -72,7 +72,7 @@ $feed = InstagramFeed::getInstance()->instagramService->getFeed('#mrmcd2019');
 
 ## Settings
 
-You can make some more configuration settings in a config file placed in your CraftCMS config directory. You can find the most recent version in src/config.php. You have to name the file ``ìnstagramfeed.php``.
+You can make some more configuration settings in a config file placed in your CraftCMS config directory. You can find the most recent version in src/config.php. You have to name the file `instagramfeed.php`.
 
 ``` php
 
