@@ -173,12 +173,16 @@ class InstagramService extends Component
      */
     private function fetchInstagramPage($path): string
     {
+        $defaultUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
+
         $settings = InstagramFeed::getInstance()->getSettings();
 
         if ($settings->useProxy && $settings->proxyKey !== '') {
             $url = 'https://igproxy.codemonauts.com/' . $path;
+            $userAgent = $defaultUserAgent;
         } else {
             $url = 'https://www.instagram.com/' . $path;
+            $userAgent = $settings->userAgent !== '' ? $settings->userAgent : $defaultUserAgent;
         }
 
         if (!$settings->useGuzzle) {
@@ -187,7 +191,7 @@ class InstagramService extends Component
             $streamOptions = [
                 'http' => [
                     'timeout' => $settings->timeout,
-                    'header' => "Accept-Language: en-US;q=0.9,en;q=0.8\r\nUser-Agent: " . $settings->userAgent . "\r\n",
+                    'header' => "Accept-Language: en-US;q=0.9,en;q=0.8\r\nUser-Agent: " . $userAgent . "\r\n",
                 ],
             ];
 
@@ -208,7 +212,7 @@ class InstagramService extends Component
             'timeout' => $settings->timeout,
             'headers' => [
                 'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
-                'User-Agent' => $settings->userAgent,
+                'User-Agent' => $userAgent,
             ],
         ];
 
