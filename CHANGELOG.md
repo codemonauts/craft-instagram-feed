@@ -1,6 +1,9 @@
 # Instagram Feed Changelog
 
 ## Unreleased
+### Changed
+- Fixed background color of icon
+
 ### Fixed
 - Add trailing slash to all requests
 - Prevent empty user agent strings
