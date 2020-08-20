@@ -32,7 +32,7 @@ To fetch the feed, configured in settings, in your template, just iterate like t
 
 ``` twig
 {% for item in craft.instagram.getFeed() %}
-<a href="https://www.instagram.com/p/{{ item.shortcode }}/" target="_blank">
+<a href="https://www.instagram.com/p/{{ item.shortcode }}/" target="_blank" rel="noopener noreferrer">
   <img src="{{ item.src }}" alt="" />
 </a>
 <p>{{ item.caption }}</p>
