@@ -1,11 +1,12 @@
 {% import "_includes/forms" as forms %}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
     label: "Username"|t("instagramfeed"),
     id: 'instagramUser',
     name: 'instagramUser',
     instructions: "Please, enter your Instagram username."|t("instagramfeed"),
     value: settings.instagramUser,
+    suggestEnvVars: true,
     type: 'text',
     required: true
 }) }}

@@ -1,6 +1,9 @@
 # Instagram Feed Changelog
 
 ## Unreleased
+### Added
+- Enable environment variables for setting username
+
 ### Changed
 - Fixed background color of icon
 
