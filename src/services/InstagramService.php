@@ -22,7 +22,7 @@ class InstagramService extends Component
     public function getFeed(string $accountOrTag = null): array
     {
         if ($accountOrTag === null) {
-            $accountOrTag = trim(InstagramFeed::getInstance()->getSettings()->instagramUser);
+            $accountOrTag = InstagramFeed::getInstance()->getSettings()->getAccount();
             if (empty($accountOrTag)) {
                 Craft::warning('No Instagram account configured.', __METHOD__);
 
