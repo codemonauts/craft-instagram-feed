@@ -1,6 +1,9 @@
 # Instagram Feed Changelog
 
 ## Unreleased
+### Added
+- Enable environment variables for setting username
+
 ### Changed
 - Fixed background color of icon
 - Adding rel noopener and noreferrer properties to links (thanks to @JayBox325)

@@ -13,7 +13,7 @@ class InstagramFeedVariable
 
     public function getAccount()
     {
-        return InstagramFeed::getInstance()->getSettings()->instagramUser;
+        return InstagramFeed::getInstance()->getSettings()->getAccount();
     }
 }
 

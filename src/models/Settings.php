@@ -2,6 +2,8 @@
 
 namespace codemonauts\instagramfeed\models;
 
+use codemonauts\instagramfeed\InstagramFeed;
+use Craft;
 use craft\base\Model;
 
 class Settings extends Model
@@ -53,5 +55,10 @@ class Settings extends Model
             ['dump', 'boolean'],
             [['userAgent', 'proxyKey'], 'string'],
         ];
+    }
+
+    public function getAccount()
+    {
+        return Craft::parseEnv(trim(InstagramFeed::getInstance()->getSettings()->instagramUser));
     }
 }
