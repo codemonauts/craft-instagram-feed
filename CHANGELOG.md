@@ -3,7 +3,9 @@
 ## Unreleased
 ### Added
 - Enable environment variables for setting username (thanks to @niektenhoopen)
-- Adding rel noopener and noreferrer properties to links (thanks to @JayBox325)
+- Add rel noopener and noreferrer properties to links (thanks to @JayBox325)
+- Add full image URL
+- Add hasAudio attribute
 
 ### Changed
 - Prevent request storm if no items are cached and the request failed.

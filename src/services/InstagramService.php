@@ -288,12 +288,15 @@ class InstagramService extends Component
 
         foreach ($mediaArray as $media) {
             $item['src'] = $this->getBestPicture($media['node']['thumbnail_resources']);
+            $item['thumbnail'] = $item['src'];
+            $item['image'] = $media['node']['display_url'];
             $item['likes'] = $media['node']['edge_liked_by']['count'];
             $item['comments'] = $media['node']['edge_media_to_comment']['count'];
             $item['shortcode'] = $media['node']['shortcode'];
             $item['timestamp'] = $media['node']['taken_at_timestamp'];
             $item['caption'] = $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] ?? '';
             $item['isVideo'] = (bool)$media['node']['is_video'];
+            $item['hasAudio'] = (bool)$media['node']['has_audio'];
             $item['video_view_count'] = $media['node']['video_view_count'] ?? 0;
             $items[] = $item;
         }

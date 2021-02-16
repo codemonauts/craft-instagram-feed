@@ -33,7 +33,7 @@ To fetch the feed, configured in settings, in your template, just iterate like t
 ``` twig
 {% for item in craft.instagram.getFeed() %}
 <a href="https://www.instagram.com/p/{{ item.shortcode }}/" target="_blank" rel="noopener noreferrer">
-  <img src="{{ item.src }}" alt="" />
+  <img src="{{ item.thumbnail }}" alt="" />
 </a>
 <p>{{ item.caption }}</p>
 <p>{{ item.likes }} Likes / {{ item.comments }} Comments</p>
@@ -44,6 +44,23 @@ In PHP do:
 
 ``` php
 $feed = InstagramFeed::getInstance()->instagramService->getFeed();
+```
+The function returns an array of posts with the following keys:
+
+``` php
+[
+  'src' => '',                # Best available thumbnail
+  'thumbnail' = '',           # Same as src
+  'image' => '',              # The original image
+  'likes' => 0,               # Number of likes
+  'comments' => 0,            # Number of comments
+  'shortcode' => '',          # The IG shortcode for the post
+  'timestamp' => 0,           # Unix timestamp when the picture/ video was taken
+  'caption' => '',            # The caption of the post
+  'isVideo' => false,         # If the post is a video
+  'hasAudio' => false         # If the video has audio
+  'video_view_count' => 0,    # Number of video views
+]
 ```
 
 You can also get the current configured Instagram account (or hash tag) in your templates:
