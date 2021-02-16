@@ -129,7 +129,7 @@ As you know, Instagram is a Walled Garden and they are not very happy to see the
 If you see an error like
 
 ```
-0000-00-00 00:00:00 [][][][error][codemonauts\instagramfeed\services\InstagramService::parseInstagramResponse] Instagram responsed with an error: Sorry, there was a problem with your request. 
+0000-00-00 00:00:00 [][][][error][codemonauts\instagramfeed\services\InstagramService::parseInstagramResponse] Instagram tag data could not be fetched. 
 ```
 
 your IP addresses could be blacklisted by Instagram. Please check first, if this happens on other IPs / IP ranges as well.
