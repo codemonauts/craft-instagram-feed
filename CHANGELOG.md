@@ -3,10 +3,12 @@
 ## Unreleased
 ### Changed
 - Fixed background color of icon
+- Adding rel noopener and noreferrer properties to links (thanks to @JayBox325)
 
 ### Fixed
 - Add trailing slash to all requests
 - Prevent empty user agent strings
+- Fixed some typos
 
 ## 1.0.5 - 2020-04-15
 ### Added
