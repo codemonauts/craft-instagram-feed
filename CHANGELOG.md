@@ -1,11 +1,11 @@
 # Instagram Feed Changelog
 
-## Unreleased
+## 1.0.6 - 2021-02-16
 ### Added
 - Enable environment variables for setting username (thanks to @niektenhoopen)
-- Add rel noopener and noreferrer properties to links (thanks to @JayBox325)
-- Add full image URL
-- Add hasAudio attribute
+- Add rel noopener and noreferrer properties to links in the README (thanks to @JayBox325)
+- Add full image URL attribute.
+- Add hasAudio attribute.
 
 ### Changed
 - Prevent request storm if no items are cached and the request failed.

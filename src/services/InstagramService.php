@@ -100,7 +100,11 @@ class InstagramService extends Component
         }
 
         if (!array_key_exists('ProfilePage', $obj['entry_data'])) {
-            Craft::error('Instagram profile data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+            if (stripos($html, 'welcome back to instagram') !== false) {
+                Craft::error('Instagram tag data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', __METHOD__);
+            } else {
+                Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+            }
 
             return [];
         }
@@ -136,7 +140,11 @@ class InstagramService extends Component
         }
 
         if (!array_key_exists('TagPage', $obj['entry_data'])) {
-            Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+            if (stripos($html, 'welcome back to instagram') !== false) {
+                Craft::error('Instagram tag data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', __METHOD__);
+            } else {
+                Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+            }
 
             return [];
         }
