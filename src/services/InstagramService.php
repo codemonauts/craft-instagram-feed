@@ -6,6 +6,7 @@ use Craft;
 use craft\base\Component;
 use codemonauts\instagramfeed\InstagramFeed;
 use craft\helpers\FileHelper;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
@@ -222,11 +223,7 @@ class InstagramService extends Component
 
         try {
             $response = $client->get($url, $guzzleOptions);
-        } catch (ClientException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-
-            return false;
-        } catch (ServerException $e) {
+        } catch (Exception $e) {
             Craft::error($e->getMessage(), __METHOD__);
 
             return false;

@@ -9,6 +9,7 @@
 - Add trailing slash to all requests
 - Prevent empty user agent strings
 - Fixed some typos
+- Catch all exceptions from Guzzle requests
 
 ## 1.0.5 - 2020-04-15
 ### Added
