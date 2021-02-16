@@ -9,6 +9,7 @@
 
 ### Changed
 - Prevent request storm if no items are cached and the request failed.
+- Set default timeout for requests from 5 to 10 seconds.
 
 ### Fixed
 - Fixed background color of icon

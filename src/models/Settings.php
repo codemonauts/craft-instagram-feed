@@ -26,7 +26,7 @@ class Settings extends Model
     /**
      * @var int Timeout in seconds waiting for the Instagram page to load
      */
-    public $timeout = 5;
+    public $timeout = 10;
 
     /**
      * @var boolean Use Guzzle instead of php's file stream to fetch the Instagram page
