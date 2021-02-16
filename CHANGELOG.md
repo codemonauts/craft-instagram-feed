@@ -5,6 +5,9 @@
 - Enable environment variables for setting username (thanks to @niektenhoopen)
 - Adding rel noopener and noreferrer properties to links (thanks to @JayBox325)
 
+### Changed
+- Prevent request storm if no items are cached and the request failed.
+
 ### Fixed
 - Fixed background color of icon
 - Add trailing slash to all requests

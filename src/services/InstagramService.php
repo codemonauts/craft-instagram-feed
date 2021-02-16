@@ -8,8 +8,6 @@ use codemonauts\instagramfeed\InstagramFeed;
 use craft\helpers\FileHelper;
 use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ServerException;
 
 class InstagramService extends Component
 {
@@ -62,6 +60,15 @@ class InstagramService extends Component
                 Craft::debug('Error fetching new data from Instagram, using existing cached data and expanding cache time. Stopping requests for 15 minutes.', __METHOD__);
                 Craft::$app->getCache()->set('instagram_data_' . $hash, $cachedItems, 2592000);
                 Craft::$app->getCache()->set('instagram_update_error_' . $hash, true, 900);
+            }
+
+            if (empty($items) && empty($cachedItems)) {
+                // If the cache is empty (e.g. first request ever) and the request fails, we are stopping requests for 15 minutes.
+                Craft::debug('Cache is empty and no items could be fetched. Stopping requests for 15 minutes.', __METHOD__);
+                Craft::$app->getCache()->set('instagram_data_' . $hash, [], 2592000);
+                Craft::$app->getCache()->set('instagram_update_error_' . $hash, true, 900);
+
+                return [];
             }
         }
 
