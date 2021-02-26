@@ -1,5 +1,9 @@
 # Instagram Feed Changelog
 
+## 1.0.7 - 2021-02-26
+### Fixed
+- Fixed videos without information about having an audio. 
+
 ## 1.0.6 - 2021-02-16
 ### Added
 - Enable environment variables for setting username (thanks to @niektenhoopen)

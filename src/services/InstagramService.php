@@ -304,7 +304,9 @@ class InstagramService extends Component
             $item['timestamp'] = $media['node']['taken_at_timestamp'];
             $item['caption'] = $media['node']['edge_media_to_caption']['edges'][0]['node']['text'] ?? '';
             $item['isVideo'] = (bool)$media['node']['is_video'];
-            $item['hasAudio'] = $item['isVideo'] ? (bool)$media['node']['has_audio'] : false;
+            if ($item['isVideo']) {
+                $item['hasAudio'] = isset($media['node']['has_audio']) ? (bool)$media['node']['has_audio'] : false;
+            }
             $item['video_view_count'] = $media['node']['video_view_count'] ?? 0;
             $items[] = $item;
         }
