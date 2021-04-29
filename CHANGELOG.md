@@ -1,5 +1,10 @@
 # Instagram Feed Changelog
 
+## 1.1.1 - 2021-04-29
+
+### Fixed
+- We now require Craft >= 3.5.0.
+
 ## 1.1.0 - 2021-04-29
 
 > {note} Since the end of April 2021, Instagram sets the "cross-origin-resource-policy" header to "same-origin" to all their images, which means that your browser is not allowed to load the images inside another website which is not "instagram.com". Starting with this release of the plugin we download, store and serve the images locally. This may have an impact on your website, and you should read the sections "[Local storage](https://github.com/codemonauts/craft-instagram-feed#local-storage)" and "[Blocked requests](https://github.com/codemonauts/craft-instagram-feed#blocked-requests)" carefully.
