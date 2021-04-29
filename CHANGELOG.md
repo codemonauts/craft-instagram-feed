@@ -1,5 +1,10 @@
 # Instagram Feed Changelog
 
+## Unreleased
+
+### Fixed
+- Required Craft version in Readme.
+
 ## 1.1.1 - 2021-04-29
 
 ### Fixed
