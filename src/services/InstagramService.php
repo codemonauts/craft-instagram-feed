@@ -5,9 +5,13 @@ namespace codemonauts\instagramfeed\services;
 use Craft;
 use craft\base\Component;
 use codemonauts\instagramfeed\InstagramFeed;
+use craft\elements\Asset;
+use craft\errors\ElementNotFoundException;
+use craft\errors\InvalidVolumeException;
 use craft\helpers\FileHelper;
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 
 class InstagramService extends Component
 {
@@ -20,8 +24,10 @@ class InstagramService extends Component
      */
     public function getFeed(string $accountOrTag = null): array
     {
+        $settings = InstagramFeed::getInstance()->getSettings();
+
         if ($accountOrTag === null) {
-            $accountOrTag = InstagramFeed::getInstance()->getSettings()->getAccount();
+            $accountOrTag = $settings->getAccount();
             if (empty($accountOrTag)) {
                 Craft::warning('No Instagram account configured.', __METHOD__);
 
@@ -29,10 +35,10 @@ class InstagramService extends Component
             }
         }
 
-        Craft::debug('Get feed for "'.$accountOrTag.'"', __METHOD__);
+        Craft::debug('Get feed for "' . $accountOrTag . '"', __METHOD__);
 
         $accountOrTag = strtolower($accountOrTag);
-        $hash = md5($accountOrTag);
+        $hash = md5($settings->useVolume . $settings->volume . $settings->subpath . $accountOrTag);
 
         $uptodate = Craft::$app->getCache()->get('instagram_uptodate_' . $hash);
         $cachedItems = Craft::$app->getCache()->get('instagram_data_' . $hash);
@@ -47,10 +53,14 @@ class InstagramService extends Component
                 $items = $this->getInstagramAccountData($accountOrTag);
             }
 
+            $items = $this->storeImages($items);
+
             if (!empty($items)) {
                 Craft::debug('Items found, caching them.', __METHOD__);
                 Craft::$app->getCache()->set('instagram_data_' . $hash, $items, 2592000);
                 Craft::$app->getCache()->set('instagram_uptodate_' . $hash, true, 21600);
+
+                $items = $this->populateImages($items);
 
                 return $items;
             }
@@ -74,7 +84,7 @@ class InstagramService extends Component
 
         Craft::debug('Returning cached items.', __METHOD__);
 
-        return is_array($cachedItems) ? $cachedItems : [];
+        return is_array($cachedItems) ? $this->populateImages($cachedItems) : [];
     }
 
     /**
@@ -161,7 +171,7 @@ class InstagramService extends Component
      *
      * @return string The URL of the best picture.
      */
-    private function getBestPicture($pictures): string
+    private function getBestPicture(array $pictures): string
     {
         $url = '';
         $maxPixels = 0;
@@ -186,8 +196,9 @@ class InstagramService extends Component
      * @param string $path The path to fetch
      *
      * @return false|string
+     * @throws GuzzleException
      */
-    private function fetchInstagramPage($path): string
+    private function fetchInstagramPage(string $path): string
     {
         $defaultUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
 
@@ -253,14 +264,16 @@ class InstagramService extends Component
      * @param string $response Response body from Instagram
      *
      * @return array|boolean
+     * @throws \yii\base\ErrorException
+     * @throws \yii\base\Exception
      */
-    private function parseInstagramResponse($response)
+    private function parseInstagramResponse(string $response)
     {
         if (InstagramFeed::getInstance()->getSettings()->dump) {
             $timestamp = time();
-            $path = Craft::$app->path->getStoragePath().'/runtime/instagramfeed';
-            FileHelper::writeToFile($path.'/'.$timestamp, $response);
-            Craft::debug('Wrote Instagram response to '.$path.'/'.$timestamp);
+            $path = Craft::$app->path->getStoragePath() . '/runtime/instagramfeed';
+            FileHelper::writeToFile($path . '/' . $timestamp, $response);
+            Craft::debug('Wrote Instagram response to ' . $path . '/' . $timestamp);
         }
 
         Craft::debug($response, __METHOD__);
@@ -271,7 +284,7 @@ class InstagramService extends Component
             // Check if Instagram returned a statement and not a valid page
             $response = json_decode($response);
             if (isset($response->errors)) {
-                Craft::error('Instagram responsed with an error: '.implode(' ', $response->errors->error), __METHOD__);
+                Craft::error('Instagram responsed with an error: ' . implode(' ', $response->errors->error), __METHOD__);
             } else {
                 Craft::error('Unknown response from Instagram. Please check debug output in devMode.', __METHOD__);
             }
@@ -290,14 +303,13 @@ class InstagramService extends Component
      *
      * @return array
      */
-    private function flattenMediaArray($mediaArray): array
+    private function flattenMediaArray(array $mediaArray): array
     {
         $items = [];
 
         foreach ($mediaArray as $media) {
-            $item['src'] = $this->getBestPicture($media['node']['thumbnail_resources']);
-            $item['thumbnail'] = $item['src'];
-            $item['image'] = $media['node']['display_url'];
+            $item['thumbnailSource'] = $this->getBestPicture($media['node']['thumbnail_resources']);
+            $item['imageSource'] = $media['node']['display_url'];
             $item['likes'] = $media['node']['edge_liked_by']['count'];
             $item['comments'] = $media['node']['edge_media_to_comment']['count'];
             $item['shortcode'] = $media['node']['shortcode'];
@@ -309,6 +321,144 @@ class InstagramService extends Component
             }
             $item['video_view_count'] = $media['node']['video_view_count'] ?? 0;
             $items[] = $item;
+        }
+
+        return $items;
+    }
+
+    /**
+     * Download and store images
+     *
+     * @param array $items
+     * @return array
+     * @throws InvalidVolumeException
+     * @throws GuzzleException
+     * @throws \Throwable
+     * @throws ElementNotFoundException
+     * @throws \craft\errors\VolumeException
+     * @throws \yii\base\Exception
+     * @throws \yii\base\InvalidConfigException
+     */
+    private function storeImages(array $items): array
+    {
+        $assetsService = Craft::$app->getAssets();
+        $volumesService = Craft::$app->getVolumes();
+
+        $settings = InstagramFeed::getInstance()->getSettings();
+
+        // Create Guzzle client
+        $userAgent = $settings->userAgent !== '' ? $settings->userAgent : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
+        $client = new Client();
+        $guzzleOptions = [
+            'timeout' => $settings->timeout,
+            'headers' => [
+                'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
+                'User-Agent' => $userAgent,
+            ],
+        ];
+
+        // Prepare storage informations
+        $tempPath = Craft::$app->path->getTempPath();
+        if ($settings->useVolume) {
+            $volume = $volumesService->getVolumeByHandle($settings->volume);
+            if (!$volume || ($rootFolder = $assetsService->getRootFolderByVolumeId($volume->id)) === null) {
+                throw new InvalidVolumeException();
+            }
+
+            $subpath = trim($settings->subpath, '/');
+            if ($subpath === '') {
+                $folderId = $rootFolder->id;
+            } else {
+                $folder = $assetsService->findFolder([
+                    'volumeId' => $volume->id,
+                    'path' => $subpath . '/',
+                ]);
+
+                $folderId = $folder->id ?? $assetsService->ensureFolderByFullPathAndVolume($subpath, $volume);
+            }
+        } else {
+            $folder = Craft::$app->path->getStoragePath() . DIRECTORY_SEPARATOR . 'instagram';
+            FileHelper::createDirectory($folder);
+        }
+
+        foreach ($items as $key => $item) {
+            try {
+                if ($settings->useVolume) {
+                    // Origin image
+                    $response = $client->get($item['imageSource'], $guzzleOptions);
+                    $filename = FileHelper::sanitizeFilename($item['shortcode']) . '.jpg';
+                    $existingAsset = Asset::findOne(['folderId' => $folderId, 'filename' => $filename]);
+                    if ($existingAsset) {
+                        $items[$key]['assetId'] = $existingAsset->id;
+                    } else {
+                        $tempFilePath = $tempPath . '/' . $filename;
+                        file_put_contents($tempFilePath, (string)$response->getBody());
+
+                        $asset = new Asset();
+                        $asset->tempFilePath = $tempFilePath;
+                        $asset->filename = $filename;
+                        $asset->newFolderId = $folderId;
+                        $asset->setVolumeId($volume->id);
+                        $asset->avoidFilenameConflicts = false;
+                        $asset->setScenario(Asset::SCENARIO_CREATE);
+
+                        if (!Craft::$app->getElements()->saveElement($asset)) {
+                            Craft::error('Could not save Instagram image to volume: ' . implode(', ', $asset->getErrorSummary(true)));
+                            continue;
+                        }
+
+                        $items[$key]['assetId'] = $asset->id;
+                    }
+                } else {
+                    // Origin image
+                    $filename = $item['shortcode'] . '_full.jpg';
+                    $filePath = $folder . DIRECTORY_SEPARATOR . $filename;
+                    if (file_exists($filePath)) {
+                        continue;
+                    }
+                    $response = $client->get($item['imageSource'], $guzzleOptions);
+                    FileHelper::writeToFile($filePath, (string)$response->getBody());
+                    // Thumbnail
+                    $filename = $item['shortcode'] . '_thumb.jpg';
+                    $filePath = $folder . DIRECTORY_SEPARATOR . $filename;
+                    if (file_exists($filePath)) {
+                        continue;
+                    }
+                    $response = $client->get($item['thumbnailSource'], $guzzleOptions);
+                    FileHelper::writeToFile($filePath, (string)$response->getBody());
+                }
+
+            } catch (Exception $e) {
+                Craft::error($e->getMessage(), __METHOD__);
+
+                continue;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Adds the URLs and assets to all items
+     *
+     * @param array $items
+     * @return array
+     * @throws \yii\base\InvalidConfigException
+     */
+    private function populateImages(array $items): array
+    {
+        foreach ($items as $key => $item) {
+            if (isset($item['assetId'])) {
+                $asset = Asset::findOne(['id' => $item['assetId']]);
+                if (!$asset) {
+                    continue;
+                }
+                $items[$key]['asset'] = $asset;
+                $items[$key]['src'] = $items[$key]['thumbnail'] = $items[$key]['image'] = $asset->getUrl();
+            } else {
+                $items[$key]['src'] = $items[$key]['thumbnail'] = '/instagramfeed/thumb/' . $item['shortcode'];
+                $items[$key]['image'] = '/instagramfeed/image/' . $item['shortcode'];
+            }
         }
 
         return $items;

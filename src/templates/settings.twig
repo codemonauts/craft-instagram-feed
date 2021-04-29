@@ -1,5 +1,30 @@
 {% import "_includes/forms" as forms %}
 
+{% macro uploadLocationInput(settings, volumeOptions) %}
+    {% from "_includes/forms" import select, text %}
+    <div class="flex">
+        <div>
+            {{ select({
+                id: 'volume',
+                name: 'volume',
+                options: volumeOptions,
+                value: settings.volume,
+            }) }}
+        </div>
+        <div class="flex-grow">
+            {{ text({
+                id: 'subpath',
+                class: 'ltr',
+                name: 'subpath',
+                value: settings.subpath,
+                placeholder: "path/to/subfolder"|t('instagramfeed')
+            }) }}
+        </div>
+    </div>
+{% endmacro %}
+
+{% from _self import uploadLocationInput %}
+
 {{ forms.autosuggestField({
     label: "Username"|t("instagramfeed"),
     id: 'instagramUser',
@@ -10,6 +35,23 @@
     type: 'text',
     required: true
 }) }}
+
+{{ forms.checkboxField({
+    label: 'Use volume to store the Instagram images'|t('instagramfeed'),
+    id: 'useVolume',
+    name: 'useVolume',
+    value: 1,
+    checked: settings.useVolume,
+    toggle: 'volume-settings'
+}) }}
+
+<div id="volume-settings"{% if not settings.useVolume %} class="hidden"{% endif %}>
+{{ forms.field({
+    label: 'Location'|t('app'),
+    instructions: 'Where Instagram images should be stored.'|t('instagramfeed'),
+    errors: settings.getErrors('location')
+}, uploadLocationInput(settings, volumeOptions)) }}
+</div>
 
 {% if settings.useProxy %}
     {% if settings.proxyKey == "" %}

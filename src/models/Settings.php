@@ -44,6 +44,21 @@ class Settings extends Model
     public $userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
 
     /**
+     * @var boolean Use volumes to store Instagram images
+     */
+    public $useVolume = false;
+
+    /**
+     * @var string The volume handle to use for storing Instagram images
+     */
+    public $volume = '';
+
+    /**
+     * @var string Subpath to use on volumes to store Instagram images
+     */
+    public $subpath = '';
+
+    /**
      * @inheritdoc
      */
     public function rules()
@@ -51,9 +66,9 @@ class Settings extends Model
         return [
             [['instagramUser', 'timeout', 'userAgent'], 'required'],
             ['timeout', 'double', 'min' => 1],
-            [['useGuzzle', 'useProxy'], 'boolean'],
+            [['useGuzzle', 'useProxy', 'useVolume'], 'boolean'],
             ['dump', 'boolean'],
-            [['userAgent', 'proxyKey'], 'string'],
+            [['userAgent', 'proxyKey', 'volume', 'subpath'], 'string'],
         ];
     }
 

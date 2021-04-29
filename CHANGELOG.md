@@ -1,5 +1,17 @@
 # Instagram Feed Changelog
 
+## 1.1.0 - 2021-04-29
+
+> {note} Since the end of April 2021, Instagram sets the "cross-origin-resource-policy" header to "same-origin" to all their images, which means that your browser is not allowed to load the images inside another website which is not "instagram.com". Starting with this release of the plugin we download, store and serve the images locally. This may have an impact on your website, and you should read the sections "[Local storage](https://github.com/codemonauts/craft-instagram-feed#local-storage)" and "[Blocked requests](https://github.com/codemonauts/craft-instagram-feed#blocked-requests)" carefully.
+
+### Added
+- Downloading and storing the Instagram images locally to either Craft's storage path or a volume and path you can configure.
+- New keys `imageSource` and `thumbnailSource` in the array of posts, that hold the original image URLs from Instagram. 
+- New key `asset` in the array of posts, that is an asset element of the Instagram image stored on a volume (only available when using a volume to store the image).
+
+### Changed
+- The keys `src`, `thumbnail` and `image` in the array of posts now have URLs pointing to your local copy of the images, which the plugin has downloaded and stored on your server.
+
 ## 1.0.7 - 2021-02-26
 ### Fixed
 - Fixed videos without information about having an audio. 
