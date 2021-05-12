@@ -1,9 +1,9 @@
 # Instagram Feed Changelog
 
-## Unreleased
+## 1.1.2 - 2021-05-12
 
-### Fixed
-- Required Craft version in Readme.
+### Changed
+- We made the plugin compatible to older Craft versions again. Changed the required version back to >= 3.0.0.
 
 ## 1.1.1 - 2021-04-29
 

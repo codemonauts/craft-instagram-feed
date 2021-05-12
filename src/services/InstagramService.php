@@ -398,7 +398,7 @@ class InstagramService extends Component
                         $asset->tempFilePath = $tempFilePath;
                         $asset->filename = $filename;
                         $asset->newFolderId = $folderId;
-                        $asset->setVolumeId($volume->id);
+                        $asset->volumeId = $volume->id;
                         $asset->avoidFilenameConflicts = false;
                         $asset->setScenario(Asset::SCENARIO_CREATE);
 

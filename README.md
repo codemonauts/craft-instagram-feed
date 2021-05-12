@@ -12,7 +12,7 @@ This only works with **public** profiles.
 
 ## Requirements
 
- * Craft CMS >= 3.5.0
+ * Craft CMS >= 3.0.0
 
 ## Installation
 
