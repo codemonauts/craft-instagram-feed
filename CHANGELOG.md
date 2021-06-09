@@ -1,5 +1,10 @@
 # Instagram Feed Changelog
 
+## 1.1.3 - 2021-06-09
+
+### Fixed
+- Instagram has changed the structure of the tag data. We have updated the code accordingly.
+
 ## 1.1.2 - 2021-05-12
 
 ### Changed
