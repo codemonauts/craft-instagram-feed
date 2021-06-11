@@ -1,5 +1,10 @@
 # Instagram Feed Changelog
 
+## 1.1.4 - 2021-06-11
+
+### Fixed
+- In some cases, you get the old tag structure. So we accept both now.
+
 ## 1.1.3 - 2021-06-09
 
 ### Fixed

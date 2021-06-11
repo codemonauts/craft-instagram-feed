@@ -172,6 +172,10 @@ class InstagramService extends Component
             return [];
         }
 
+        if (isset($obj['entry_data']['TagPage'][0]['graphql'])){
+            return $this->flattenMediaArray($obj['entry_data']['TagPage'][0]['graphql']['hashtag']['edge_hashtag_to_media']['edges'], self::STRUCTURE_VERSION_1);
+        }
+
         return $this->flattenMediaArray($obj['entry_data']['TagPage'][0]['data']['recent']['sections'], self::STRUCTURE_VERSION_2);
     }
 
