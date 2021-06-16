@@ -436,31 +436,38 @@ class InstagramService extends Component
         foreach ($items as $key => $item) {
             try {
                 if ($settings->useVolume) {
-                    // Origin image
-                    $response = $client->get($item['imageSource'], $guzzleOptions);
                     $filename = FileHelper::sanitizeFilename($item['shortcode']) . '.jpg';
+                    // Check if asset exists in database
                     $existingAsset = Asset::findOne(['folderId' => $folderId, 'filename' => $filename]);
                     if ($existingAsset) {
                         $items[$key]['assetId'] = $existingAsset->id;
-                    } else {
-                        $tempFilePath = $tempPath . '/' . $filename;
-                        file_put_contents($tempFilePath, (string)$response->getBody());
-
-                        $asset = new Asset();
-                        $asset->tempFilePath = $tempFilePath;
-                        $asset->filename = $filename;
-                        $asset->newFolderId = $folderId;
-                        $asset->volumeId = $volume->id;
-                        $asset->avoidFilenameConflicts = false;
-                        $asset->setScenario(Asset::SCENARIO_CREATE);
-
-                        if (!Craft::$app->getElements()->saveElement($asset)) {
-                            Craft::error('Could not save Instagram image to volume: ' . implode(', ', $asset->getErrorSummary(true)));
-                            continue;
-                        }
-
-                        $items[$key]['assetId'] = $asset->id;
+                        continue;
                     }
+
+                    // Check if asset exists on volume and delete it
+                    if ($volume->fileExists($subpath . '/' . $filename)) {
+                        $volume->deleteFile($subpath . '/' . $filename);
+                    }
+
+                    // Fetch origin and store on volume
+                    $response = $client->get($item['imageSource'], $guzzleOptions);
+                    $tempFilePath = $tempPath . '/' . $filename;
+                    file_put_contents($tempFilePath, (string)$response->getBody());
+
+                    $asset = new Asset();
+                    $asset->tempFilePath = $tempFilePath;
+                    $asset->filename = $filename;
+                    $asset->newFolderId = $folderId;
+                    $asset->volumeId = $volume->id;
+                    $asset->avoidFilenameConflicts = false;
+                    $asset->setScenario(Asset::SCENARIO_CREATE);
+
+                    if (!Craft::$app->getElements()->saveElement($asset)) {
+                        Craft::error('Could not save Instagram image to volume: ' . implode(', ', $asset->getErrorSummary(true)));
+                        continue;
+                    }
+
+                    $items[$key]['assetId'] = $asset->id;
                 } else {
                     // Origin image
                     $filename = $item['shortcode'] . '_full.jpg';
@@ -470,6 +477,7 @@ class InstagramService extends Component
                     }
                     $response = $client->get($item['imageSource'], $guzzleOptions);
                     FileHelper::writeToFile($filePath, (string)$response->getBody());
+
                     // Thumbnail
                     $filename = $item['shortcode'] . '_thumb.jpg';
                     $filePath = $folder . DIRECTORY_SEPARATOR . $filename;

@@ -1,5 +1,11 @@
 # Instagram Feed Changelog
 
+## 1.1.5 - 2021-06-16
+
+### Fixed
+- If you use a volume to store the images, the first time displaying the images failed.
+- In a scenario, where the image files already exists on the volume but without an asset entry in Craft, the files on the volume will be deleted and downloaded again.
+
 ## 1.1.4 - 2021-06-11
 
 ### Fixed
