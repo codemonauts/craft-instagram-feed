@@ -1,5 +1,11 @@
 # Instagram Feed Changelog
 
+## 1.1.6 - 2021-07-16
+
+### Changed
+- Removed file_get_contents() and always use Guzzle for all requests.
+- Changed link to new documentation.
+
 ## 1.1.5 - 2021-06-16
 
 ### Fixed
