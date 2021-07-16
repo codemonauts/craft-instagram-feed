@@ -237,27 +237,6 @@ class InstagramService extends Component
             $userAgent = $settings->userAgent !== '' ? $settings->userAgent : $defaultUserAgent;
         }
 
-        if (!$settings->useGuzzle) {
-            Craft::debug('Using php file stream to fetch Instagram page.', __METHOD__);
-
-            $streamOptions = [
-                'http' => [
-                    'timeout' => $settings->timeout,
-                    'header' => "Accept-Language: en-US;q=0.9,en;q=0.8\r\nUser-Agent: " . $userAgent . "\r\n",
-                ],
-            ];
-
-            if ($settings->useProxy && $settings->proxyKey !== '') {
-                $streamOptions['http']['header'] .= 'Authorization: ' . $settings->proxyKey . "\r\n";
-            }
-
-            $context = stream_context_create($streamOptions);
-
-            return @file_get_contents($url, false, $context);
-        }
-
-        Craft::debug('Using Guzzle to fetch Instagram page.', __METHOD__);
-
         $client = new Client();
 
         $guzzleOptions = [

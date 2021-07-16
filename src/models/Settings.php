@@ -29,6 +29,7 @@ class Settings extends Model
     public $timeout = 10;
 
     /**
+     * @deprecated Guzzle will always be used.
      * @var boolean Use Guzzle instead of php's file stream to fetch the Instagram page
      */
     public $useGuzzle = false;
@@ -66,7 +67,7 @@ class Settings extends Model
         return [
             [['instagramUser', 'timeout', 'userAgent'], 'required'],
             ['timeout', 'double', 'min' => 1],
-            [['useGuzzle', 'useProxy', 'useVolume'], 'boolean'],
+            [['useProxy', 'useVolume'], 'boolean'],
             ['dump', 'boolean'],
             [['userAgent', 'proxyKey', 'volume', 'subpath'], 'string'],
         ];

@@ -13,9 +13,6 @@ return [
     // Timeout in seconds waiting for the Instagram page to load.
     'timeout' => 5,
 
-    // Use Guzzle instead of php's file stream
-    'useGuzzle' => false,
-
     // Dump Instagram response to file for debugging purpose
     'dump' => false,
 
