@@ -1,5 +1,10 @@
 # Instagram Feed Changelog
 
+## 1.1.7 - 2021-07-19
+
+### Changed
+- Add PHP 8 to composer version constraint.
+
 ## 1.1.6 - 2021-07-16
 
 ### Changed
