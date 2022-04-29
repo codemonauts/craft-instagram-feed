@@ -1,4 +1,4 @@
-# Instagram feed plugin for Craft CMS 3.x
+# Instagram feed plugin for Craft CMS
 
 ![Icon](resources/instagram.png)
 
