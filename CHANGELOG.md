@@ -1,5 +1,28 @@
 # Instagram Feed Changelog
 
+## 2.0.0 - 2021-04-29
+
+### Added
+
+- Craft CMS 4 compatibility
+- Option to cache invalidate Instagram data only
+- Settings page indicates if a setting is overwritten by config file
+
+### Changed
+
+- Requires Craft CMS >= 4.0 and php >= 8.0
+- If an image could not be fetched, the post is not displayed anymore
+
+### Fixed
+
+- Input validation for shortcode. (#59)
+- Missing error message when saving empty account name in settings
+- Validate Instagram account name
+
+### Deleted
+
+- Remove config setting for individual user agent
+
 ## 1.1.7 - 2021-07-19
 
 ### Changed

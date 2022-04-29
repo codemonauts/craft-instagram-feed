@@ -8,13 +8,13 @@ use yii\web\NotFoundHttpException;
 
 class ImageController extends Controller
 {
-    public $allowAnonymous = true;
+    public array|bool|int $allowAnonymous = self::ALLOW_ANONYMOUS_LIVE;
 
     public function actionImage($shortCode)
     {
         $filename = Craft::$app->getPath()->getStoragePath() . '/instagram/' . $shortCode . '_full.jpg';
 
-        if (!file_exists($filename)) {
+        if (!preg_match('/[a-z0-9\-_]+/i', $shortCode) || !file_exists($filename)) {
             throw new NotFoundHttpException();
         }
 
@@ -25,7 +25,7 @@ class ImageController extends Controller
     {
         $filename = Craft::$app->getPath()->getStoragePath() . '/instagram/' . $shortCode . '_thumb.jpg';
 
-        if (!file_exists($filename)) {
+        if (!preg_match('/[a-z0-9\-_]+/i', $shortCode) || !file_exists($filename)) {
             throw new NotFoundHttpException();
         }
 

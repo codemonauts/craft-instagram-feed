@@ -8,12 +8,12 @@ class InstagramFeedVariable
 {
     public function getFeed($account = null)
     {
-        return InstagramFeed::getInstance()->instagramService->getFeed($account);
+        return InstagramFeed::$plugin->instagramService->getFeed($account);
     }
 
     public function getAccount()
     {
-        return InstagramFeed::getInstance()->getSettings()->getAccount();
+        return InstagramFeed::$settings->getAccount();
     }
 }
 

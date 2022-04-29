@@ -29,17 +29,20 @@
     label: "Username"|t("instagramfeed"),
     id: 'instagramUser',
     name: 'instagramUser',
+    warning: (configFile.instagramUser is defined ? "This is being overridden by the config file."|t('instagramfeed')),
     instructions: "Please, enter your Instagram username."|t("instagramfeed"),
     value: settings.instagramUser,
     suggestEnvVars: true,
     type: 'text',
-    required: true
+    required: true,
+    errors: settings.getErrors('instagramUser')
 }) }}
 
 {{ forms.checkboxField({
     label: 'Use volume to store the Instagram images'|t('instagramfeed'),
     id: 'useVolume',
     name: 'useVolume',
+    warning: (configFile.useVolume is defined ? "This is being overridden by the config file."|t('instagramfeed')),
     value: 1,
     checked: settings.useVolume,
     toggle: 'volume-settings'
@@ -49,15 +52,16 @@
 {{ forms.field({
     label: 'Location'|t('app'),
     instructions: 'Where Instagram images should be stored.'|t('instagramfeed'),
+    warning: (configFile.volume is defined ? "This is being overridden by the config file."|t('instagramfeed')),
     errors: settings.getErrors('location')
 }, uploadLocationInput(settings, volumeOptions)) }}
 </div>
 
 {% if settings.useProxy %}
     {% if settings.proxyKey == "" %}
-    <p style="color: red;">{{ "Proxy usage is enabled but the proxy key is empty, so the proxy will not be used." }}</p>
+    <p style="color: red;">{{ "Proxy usage is enabled but the proxy key is empty, so the proxy will not be used."|t('instagramfeed') }}</p>
     {% else %}
-    <p style="color: green;">{{ "Proxy will be used." }}</p>
+    <p style="color: green;">{{ "Proxy will be used."|t('instagramfeed') }}</p>
     {% endif %}
 {% endif %}
 

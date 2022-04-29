@@ -6,12 +6,13 @@ use Craft;
 use craft\base\Component;
 use codemonauts\instagramfeed\InstagramFeed;
 use craft\elements\Asset;
-use craft\errors\ElementNotFoundException;
-use craft\errors\InvalidVolumeException;
 use craft\helpers\FileHelper;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Throwable;
+use yii\base\InvalidConfigException;
+use yii\caching\TagDependency;
 
 class InstagramService extends Component
 {
@@ -19,46 +20,53 @@ class InstagramService extends Component
 
     public const STRUCTURE_VERSION_2 = 2;
 
+    public const CACHE_TAG = 'instagramfeed';
+
+    private const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
+
     /**
      * Returns the current Instagram feed of the configured account.
      *
      * @param string|null $accountOrTag Optional account name or hashtag to fetch. If not presented, the account from the settings will be used.
      *
-     * @return array The feed data
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Throwable
+     * @return array
+     * @throws GuzzleException
+     * @throws Throwable
      * @throws \craft\errors\ElementNotFoundException
-     * @throws \craft\errors\InvalidVolumeException
      * @throws \craft\errors\VolumeException
      * @throws \yii\base\Exception
      * @throws \yii\base\InvalidConfigException
      */
     public function getFeed(string $accountOrTag = null): array
     {
-        $settings = InstagramFeed::getInstance()->getSettings();
+        $cacheService = Craft::$app->getCache();
+        $dependency = new TagDependency();
+        $dependency->tags[] = self::CACHE_TAG;
 
+        // Get account from settings if not set
         if ($accountOrTag === null) {
-            $accountOrTag = $settings->getAccount();
+            $accountOrTag = InstagramFeed::$settings->getAccount();
             if (empty($accountOrTag)) {
-                Craft::warning('No Instagram account configured.', __METHOD__);
+                Craft::warning('No Instagram account configured.', 'instagramfeed');
 
                 return [];
             }
         }
 
-        Craft::debug('Get feed for "' . $accountOrTag . '"', __METHOD__);
+        Craft::info('Get feed for "' . $accountOrTag . '"', 'instagramfeed');
 
         $accountOrTag = strtolower($accountOrTag);
-        $hash = md5($settings->useVolume . $settings->volume . $settings->subpath . $accountOrTag);
+        $hash = md5(InstagramFeed::$settings->useVolume . InstagramFeed::$settings->volume . InstagramFeed::$settings->subpath . $accountOrTag);
 
-        $uptodate = Craft::$app->getCache()->get('instagram_uptodate_' . $hash);
-        $cachedItems = Craft::$app->getCache()->get('instagram_data_' . $hash);
-        $timeout = Craft::$app->getCache()->get('instagram_update_error_' . $hash);
+        $uptodate = $cacheService->get('instagram_uptodate_' . $hash);
+        $cachedItems = $cacheService->get('instagram_data_' . $hash);
+        $timeout = $cacheService->get('instagram_update_error_' . $hash);
 
         if ($uptodate === false && $timeout === false) {
-            Craft::debug('No cached data found, start fetching Instagram page.', __METHOD__);
 
-            if (0 === strpos($accountOrTag, '#')) {
+            Craft::info('No cached data found, start fetching Instagram page.', 'instagramfeed');
+
+            if (str_starts_with($accountOrTag, '#')) {
                 $items = $this->getInstagramTagData($accountOrTag);
             } else {
                 $items = $this->getInstagramAccountData($accountOrTag);
@@ -67,31 +75,32 @@ class InstagramService extends Component
             $items = $this->storeImages($items);
 
             if (!empty($items)) {
-                Craft::debug('Items found, caching them.', __METHOD__);
-                Craft::$app->getCache()->set('instagram_data_' . $hash, $items, 2592000);
-                Craft::$app->getCache()->set('instagram_uptodate_' . $hash, true, 21600);
+                Craft::info('Items found, caching them.', 'instagramfeed');
+                $cacheService->set('instagram_data_' . $hash, $items, 2592000, $dependency);
+                $cacheService->set('instagram_uptodate_' . $hash, true, 21600, $dependency);
+                $cacheService->set('instagram_update_error_' . $hash, false, 0, $dependency);
 
                 return $this->populateImages($items);
             }
 
             if (!empty($cachedItems)) {
                 // If not updated expand cache time and set update to 15min to stop from retrying every request
-                Craft::debug('Error fetching new data from Instagram, using existing cached data and expanding cache time. Stopping requests for 15 minutes.', __METHOD__);
-                Craft::$app->getCache()->set('instagram_data_' . $hash, $cachedItems, 2592000);
-                Craft::$app->getCache()->set('instagram_update_error_' . $hash, true, 900);
+                Craft::info('Error fetching new data from Instagram, using existing cached data and expanding cache time. Stopping requests for 15 minutes.', 'instagramfeed');
+                $cacheService->set('instagram_data_' . $hash, $cachedItems, 2592000, $dependency);
+                $cacheService->set('instagram_update_error_' . $hash, true, 900, $dependency);
             }
 
-            if (empty($items) && empty($cachedItems)) {
+            if (empty($cachedItems)) {
                 // If the cache is empty (e.g. first request ever) and the request fails, we are stopping requests for 15 minutes.
-                Craft::debug('Cache is empty and no items could be fetched. Stopping requests for 15 minutes.', __METHOD__);
-                Craft::$app->getCache()->set('instagram_data_' . $hash, [], 2592000);
-                Craft::$app->getCache()->set('instagram_update_error_' . $hash, true, 900);
+                Craft::info('Cache is empty and no items could be fetched. Stopping requests for 15 minutes.', 'instagramfeed');
+                $cacheService->set('instagram_data_' . $hash, [], 2592000, $dependency);
+                $cacheService->set('instagram_update_error_' . $hash, true, 900, $dependency);
 
                 return [];
             }
         }
 
-        Craft::debug('Returning cached items.', __METHOD__);
+        Craft::info('Returning cached items.', 'instagramfeed');
 
         return is_array($cachedItems) ? $this->populateImages($cachedItems) : [];
     }
@@ -102,7 +111,7 @@ class InstagramService extends Component
      * @param string $account The account name to fetch.
      *
      * @return array
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      * @throws \yii\base\ErrorException
      * @throws \yii\base\Exception
      */
@@ -110,22 +119,22 @@ class InstagramService extends Component
     {
         $html = $this->fetchInstagramPage($account . '/');
 
-        if (false === $html) {
-            Craft::error('Instagram profile data could not be fetched. Wrong account name or not a public profile.', __METHOD__);
+        if (null === $html) {
+            Craft::error('Instagram profile data could not be fetched. Wrong account name or not a public profile.', 'instagramfeed');
 
             return [];
         }
 
         $obj = $this->parseInstagramResponse($html);
-        if (false === $obj) {
+        if (empty($obj)) {
             return [];
         }
 
         if (!array_key_exists('ProfilePage', $obj['entry_data'])) {
             if (stripos($html, 'welcome back to instagram') !== false) {
-                Craft::error('Instagram tag data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', __METHOD__);
+                Craft::error('Instagram tag data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', 'instagramfeed');
             } else {
-                Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+                Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', 'instagramfeed');
             }
 
             return [];
@@ -140,9 +149,8 @@ class InstagramService extends Component
      * @param string $tag The tag name to fetch.
      *
      * @return array
-     * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \yii\base\ErrorException
-     * @throws \yii\base\Exception
+     * @throws \yii\base\Exception|\GuzzleHttp\Exception\GuzzleException
      */
     private function getInstagramTagData(string $tag): array
     {
@@ -151,28 +159,28 @@ class InstagramService extends Component
         $path = sprintf('explore/tags/%s/', $tag);
         $html = $this->fetchInstagramPage($path);
 
-        if (false === $html) {
-            Craft::error('Instagram tag data could not be fetched.', __METHOD__);
+        if (null === $html) {
+            Craft::error('Instagram tag data could not be fetched.', 'instagramfeed');
 
             return [];
         }
 
         $obj = $this->parseInstagramResponse($html);
-        if (false === $obj) {
+        if (empty($obj)) {
             return [];
         }
 
         if (!array_key_exists('TagPage', $obj['entry_data'])) {
             if (stripos($html, 'welcome back to instagram') !== false) {
-                Craft::error('Instagram tag data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', __METHOD__);
+                Craft::error('Instagram tag data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', 'instagramfeed');
             } else {
-                Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+                Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', 'instagramfeed');
             }
 
             return [];
         }
 
-        if (isset($obj['entry_data']['TagPage'][0]['graphql'])){
+        if (isset($obj['entry_data']['TagPage'][0]['graphql'])) {
             return $this->flattenMediaArray($obj['entry_data']['TagPage'][0]['graphql']['hashtag']['edge_hashtag_to_media']['edges'], self::STRUCTURE_VERSION_1);
         }
 
@@ -182,32 +190,30 @@ class InstagramService extends Component
     /**
      * Returns the best picture in size from the Instagram result array.
      *
-     * @param array $pictures The array of pictures to chose the best version from.
+     * @param array $pictures The array of pictures to choose the best version from.
      * @param int $version The structure's version
      *
-     * @return string The URL of the best picture.
+     * @return string
      */
     private function getBestPicture(array $pictures, int $version): string
     {
         $url = '';
         $maxPixels = 0;
 
-        if (is_array($pictures)) {
-            foreach ($pictures as $picture) {
-                if ($version === self::STRUCTURE_VERSION_1) {
-                    $pixels = $picture['config_width'] * $picture['config_height'];
-                    if ($pixels > $maxPixels) {
-                        $url = $picture['src'];
+        foreach ($pictures as $picture) {
+            if ($version === self::STRUCTURE_VERSION_1) {
+                $pixels = $picture['config_width'] * $picture['config_height'];
+                if ($pixels > $maxPixels) {
+                    $url = $picture['src'];
 
-                        $maxPixels = $pixels;
-                    }
-                } elseif ($version === self::STRUCTURE_VERSION_2) {
-                    $pixels = $picture['width'] * $picture['height'];
-                    if ($pixels > $maxPixels) {
-                        $url = $picture['url'];
+                    $maxPixels = $pixels;
+                }
+            } else if ($version === self::STRUCTURE_VERSION_2) {
+                $pixels = $picture['width'] * $picture['height'];
+                if ($pixels > $maxPixels) {
+                    $url = $picture['url'];
 
-                        $maxPixels = $pixels;
-                    }
+                    $maxPixels = $pixels;
                 }
             }
         }
@@ -220,46 +226,40 @@ class InstagramService extends Component
      *
      * @param string $path The path to fetch
      *
-     * @return false|string
-     * @throws GuzzleException
+     * @return string|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    private function fetchInstagramPage(string $path): string
+    private function fetchInstagramPage(string $path): ?string
     {
-        $defaultUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
-
-        $settings = InstagramFeed::getInstance()->getSettings();
-
-        if ($settings->useProxy && $settings->proxyKey !== '') {
+        if (InstagramFeed::$settings->useProxy && InstagramFeed::$settings->proxyKey !== '') {
             $url = 'https://igproxy.codemonauts.com/' . $path;
-            $userAgent = $defaultUserAgent;
         } else {
             $url = 'https://www.instagram.com/' . $path;
-            $userAgent = $settings->userAgent !== '' ? $settings->userAgent : $defaultUserAgent;
         }
 
         $client = new Client();
 
         $guzzleOptions = [
-            'timeout' => $settings->timeout,
+            'timeout' => InstagramFeed::$settings->timeout,
             'headers' => [
                 'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
-                'User-Agent' => $userAgent,
+                'User-Agent' => self::DEFAULT_USER_AGENT,
             ],
         ];
 
-        if ($settings->useProxy && $settings->proxyKey !== '') {
-            $guzzleOptions['headers']['Authorization'] = $settings->proxyKey;
+        if (InstagramFeed::$settings->useProxy && InstagramFeed::$settings->proxyKey !== '') {
+            $guzzleOptions['headers']['Authorization'] = InstagramFeed::$settings->proxyKey;
         }
 
         try {
             $response = $client->get($url, $guzzleOptions);
         } catch (Exception $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+            Craft::error('Error fetching page: ' . $e->getMessage(), 'instagramfeed');
 
-            return false;
+            return null;
         }
 
-        return $response->getBody();
+        return (string)$response->getBody();
     }
 
     /**
@@ -267,20 +267,18 @@ class InstagramService extends Component
      *
      * @param string $response Response body from Instagram
      *
-     * @return array|boolean
+     * @return array
      * @throws \yii\base\ErrorException
      * @throws \yii\base\Exception
      */
-    private function parseInstagramResponse(string $response)
+    private function parseInstagramResponse(string $response): array
     {
-        if (InstagramFeed::getInstance()->getSettings()->dump) {
+        if (InstagramFeed::$settings->dump) {
             $timestamp = time();
             $path = Craft::$app->path->getStoragePath() . '/runtime/instagramfeed';
             FileHelper::writeToFile($path . '/' . $timestamp, $response);
-            Craft::debug('Wrote Instagram response to ' . $path . '/' . $timestamp);
+            Craft::info('Wrote Instagram response to ' . $path . '/' . $timestamp);
         }
-
-        Craft::debug($response, __METHOD__);
 
         $arr = explode('window._sharedData = ', $response);
 
@@ -288,12 +286,12 @@ class InstagramService extends Component
             // Check if Instagram returned a statement and not a valid page
             $response = json_decode($response, false);
             if (isset($response->errors)) {
-                Craft::error('Instagram responsed with an error: ' . implode(' ', $response->errors->error), __METHOD__);
+                Craft::error('Instagram responsed with an error: ' . implode(' ', $response->errors->error), 'instagramfeed');
             } else {
-                Craft::error('Unknown response from Instagram. Please check debug output in devMode.', __METHOD__);
+                Craft::error('Unknown response from Instagram. Please check debug output in devMode.', 'instagramfeed');
             }
 
-            return false;
+            return [];
         }
 
         $arr = explode(';</script>', $arr[1]);
@@ -305,6 +303,7 @@ class InstagramService extends Component
      *
      * @param array $mediaArray The Instagram response array
      * @param int $version The structure's version
+     *
      * @return array
      */
     private function flattenMediaArray(array $mediaArray, int $version): array
@@ -327,7 +326,7 @@ class InstagramService extends Component
                 $item['video_view_count'] = $media['node']['video_view_count'] ?? 0;
                 $items[] = $item;
             }
-        } elseif ($version === self::STRUCTURE_VERSION_2) {
+        } else if ($version === self::STRUCTURE_VERSION_2) {
             foreach ($mediaArray as $section) {
                 foreach ($section['layout_content']['medias'] as $node) {
                     if ((int)$node['media']['media_type'] === 8) {
@@ -361,11 +360,10 @@ class InstagramService extends Component
      * Download and store images
      *
      * @param array $items
+     *
      * @return array
-     * @throws InvalidVolumeException
-     * @throws GuzzleException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Throwable
-     * @throws ElementNotFoundException
      * @throws \craft\errors\VolumeException
      * @throws \yii\base\Exception
      * @throws \yii\base\InvalidConfigException
@@ -375,28 +373,25 @@ class InstagramService extends Component
         $assetsService = Craft::$app->getAssets();
         $volumesService = Craft::$app->getVolumes();
 
-        $settings = InstagramFeed::getInstance()->getSettings();
-
         // Create Guzzle client
-        $userAgent = $settings->userAgent !== '' ? $settings->userAgent : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
         $client = new Client();
         $guzzleOptions = [
-            'timeout' => $settings->timeout,
+            'timeout' => InstagramFeed::$settings->timeout,
             'headers' => [
                 'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
-                'User-Agent' => $userAgent,
+                'User-Agent' => self::DEFAULT_USER_AGENT,
             ],
         ];
 
-        // Prepare storage informations
+        // Prepare storage information
         $tempPath = Craft::$app->path->getTempPath();
-        if ($settings->useVolume) {
-            $volume = $volumesService->getVolumeByHandle($settings->volume);
+        if (InstagramFeed::$settings->useVolume) {
+            $volume = $volumesService->getVolumeByHandle(InstagramFeed::$settings->volume);
             if (!$volume || ($rootFolder = $assetsService->getRootFolderByVolumeId($volume->id)) === null) {
-                throw new InvalidVolumeException();
+                throw new InvalidConfigException('Volume with handle "' . InstagramFeed::$settings->volume . '" not found.');
             }
 
-            $subpath = trim($settings->subpath, '/');
+            $subpath = trim(InstagramFeed::$settings->subpath, '/');
             if ($subpath === '') {
                 $folderId = $rootFolder->id;
             } else {
@@ -414,7 +409,7 @@ class InstagramService extends Component
 
         foreach ($items as $key => $item) {
             try {
-                if ($settings->useVolume) {
+                if (InstagramFeed::$settings->useVolume) {
                     $filename = FileHelper::sanitizeFilename($item['shortcode']) . '.jpg';
                     // Check if asset exists in database
                     $existingAsset = Asset::findOne(['folderId' => $folderId, 'filename' => $filename]);
@@ -424,8 +419,8 @@ class InstagramService extends Component
                     }
 
                     // Check if asset exists on volume and delete it
-                    if ($volume->fileExists($subpath . '/' . $filename)) {
-                        $volume->deleteFile($subpath . '/' . $filename);
+                    if ($volume->getFs()->fileExists($subpath . '/' . $filename)) {
+                        $volume->getFs()->deleteFile($subpath . '/' . $filename);
                     }
 
                     // Fetch origin and store on volume
@@ -468,7 +463,9 @@ class InstagramService extends Component
                 }
 
             } catch (Exception $e) {
-                Craft::error($e->getMessage(), __METHOD__);
+                // Remove post without image
+                Craft::error('Error fetching images: ' . $e->getMessage(), 'instagramfeed');
+                unset($items[$key]);
 
                 continue;
             }
@@ -481,6 +478,7 @@ class InstagramService extends Component
      * Adds the URLs and assets to all items
      *
      * @param array $items
+     *
      * @return array
      * @throws \yii\base\InvalidConfigException
      */
