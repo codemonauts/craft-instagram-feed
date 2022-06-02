@@ -1,5 +1,12 @@
 # Instagram Feed Changelog
 
+## Unreleased [CRITICAL]
+
+> {note} Instagram changed the structure on 06/01/2022.
+
+### Changed
+- Adaptation to the changes in the data structure of Instagram on 06/01/2022.
+
 ## 1.1.7 - 2021-07-19
 
 ### Changed

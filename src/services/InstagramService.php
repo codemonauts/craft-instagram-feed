@@ -116,6 +116,15 @@ class InstagramService extends Component
             return [];
         }
 
+        if (InstagramFeed::getInstance()->getSettings()->useProxy) {
+            $obj = $this->parseProxyResponse($html);
+            if (false === $obj) {
+                return [];
+            }
+
+            return $this->flattenMediaArray($obj['data']['user']['edge_owner_to_timeline_media']['edges'], self::STRUCTURE_VERSION_1);
+        }
+
         $obj = $this->parseInstagramResponse($html);
         if (false === $obj) {
             return [];
@@ -155,6 +164,15 @@ class InstagramService extends Component
             Craft::error('Instagram tag data could not be fetched.', __METHOD__);
 
             return [];
+        }
+
+        if (InstagramFeed::getInstance()->getSettings()->useProxy) {
+            $obj = $this->parseProxyResponse($html);
+            if (false === $obj) {
+                return [];
+            }
+
+            return $this->flattenMediaArray($obj['data']['recent']['sections'], self::STRUCTURE_VERSION_2);
         }
 
         $obj = $this->parseInstagramResponse($html);
@@ -260,6 +278,18 @@ class InstagramService extends Component
         }
 
         return $response->getBody();
+    }
+
+    /**
+     * Function to parse the response body from the proxy.
+     *
+     * @param string $response
+     *
+     * @return mixed
+     */
+    private function parseProxyResponse(string $response)
+    {
+        return json_decode($response, true);
     }
 
     /**
