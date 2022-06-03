@@ -1,7 +1,7 @@
 {
   "name": "codemonauts/craft-instagram-feed",
   "description": "Craft CMS plugin to receive Instagram feed data as variable in templates.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "craft-plugin",
   "keywords": [
     "craft",
@@ -23,9 +23,8 @@
     "issues": "https://github.com/codemonauts/craft-instagram-feed/issues"
   },
   "require": {
-    "craftcms/cms": "^4.0.0-alpha.1",
-    "ext-json": "*",
-    "php": "^8.0"
+    "craftcms/cms": "^4.0.0",
+    "ext-json": "*"
   },
   "autoload": {
     "psr-4": {

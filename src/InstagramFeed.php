@@ -72,6 +72,11 @@ class InstagramFeed extends Plugin
                 ];
             });
         }
+
+        // Prefetch account after save settings
+        Event::on(Plugin::class, Plugin::EVENT_AFTER_SAVE_SETTINGS, function () {
+            InstagramFeed::getInstance()->instagramService->getFeed();
+        });
     }
 
     /**
@@ -119,5 +124,16 @@ class InstagramFeed extends Plugin
                 'configFile' => $configFile,
             ]
         );
+    }
+
+    /**
+     * Returns the Instagram service component.
+     *
+     * @return InstagramService
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function getInstagramService(): InstagramService
+    {
+        return $this->get('instagramService');
     }
 }

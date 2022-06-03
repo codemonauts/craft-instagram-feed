@@ -91,10 +91,11 @@ class InstagramService extends Component
             }
 
             if (empty($cachedItems)) {
-                // If the cache is empty (e.g. first request ever) and the request fails, we are stopping requests for 15 minutes.
-                Craft::info('Cache is empty and no items could be fetched. Stopping requests for 15 minutes.', 'instagramfeed');
+                // If the cache is empty (e.g. first request ever) and the request fails, we are stopping requests for some time.
+                $waitTime = $this->canUseProxy() ? 10 : 900;
+                Craft::info('Cache is empty and no items could be fetched. Stopping requests for ' . $waitTime . ' seconds.', 'instagramfeed');
                 $cacheService->set('instagram_data_' . $hash, [], 2592000, $dependency);
-                $cacheService->set('instagram_update_error_' . $hash, true, 900, $dependency);
+                $cacheService->set('instagram_update_error_' . $hash, true, $waitTime, $dependency);
 
                 return [];
             }
@@ -120,9 +121,18 @@ class InstagramService extends Component
         $html = $this->fetchInstagramPage($account . '/');
 
         if (null === $html) {
-            Craft::error('Instagram profile data could not be fetched. Wrong account name or not a public profile.', 'instagramfeed');
+            Craft::error('Instagram profile data could not be fetched.', 'instagramfeed');
 
             return [];
+        }
+
+        if ($this->canUseProxy()) {
+            $obj = $this->parseProxyResponse($html);
+            if (false === $obj) {
+                return [];
+            }
+
+            return $this->flattenMediaArray($obj['data']['user']['edge_owner_to_timeline_media']['edges'], self::STRUCTURE_VERSION_1);
         }
 
         $obj = $this->parseInstagramResponse($html);
@@ -163,6 +173,15 @@ class InstagramService extends Component
             Craft::error('Instagram tag data could not be fetched.', 'instagramfeed');
 
             return [];
+        }
+
+        if ($this->canUseProxy()) {
+            $obj = $this->parseProxyResponse($html);
+            if (false === $obj) {
+                return [];
+            }
+
+            return $this->flattenMediaArray($obj['data']['recent']['sections'], self::STRUCTURE_VERSION_2);
         }
 
         $obj = $this->parseInstagramResponse($html);
@@ -260,6 +279,18 @@ class InstagramService extends Component
         }
 
         return (string)$response->getBody();
+    }
+
+    /**
+     * Function to parse the response body from the proxy.
+     *
+     * @param string $response
+     *
+     * @return mixed
+     */
+    private function parseProxyResponse(string $response)
+    {
+        return json_decode($response, true);
     }
 
     /**
@@ -499,5 +530,15 @@ class InstagramService extends Component
         }
 
         return $items;
+    }
+
+    /**
+     * Whether the plugin can use the proxy.
+     *
+     * @return bool
+     */
+    public function canUseProxy(): bool
+    {
+        return (InstagramFeed::$settings->useProxy && InstagramFeed::$settings->proxyKey !== '');
     }
 }
