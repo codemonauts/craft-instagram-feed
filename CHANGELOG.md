@@ -1,8 +1,8 @@
 # Instagram Feed Changelog
 
-## Unreleased [CRITICAL]
+## 1.1.8 - 2022-06-03 [CRITICAL]
 
-> {note} Instagram changed the structure on 06/01/2022.
+> {note} Instagram has changed the data structure on 06/01/2022. Without this update, the plugin will no longer work.
 
 ### Changed
 - Adaptation to the changes in the data structure of Instagram on 06/01/2022.

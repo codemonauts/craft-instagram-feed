@@ -42,6 +42,7 @@ Known actions from Instagram:
  * March 2020, disabling the token authentication for their new API.
  * April 2020, blocking IP addresses from IP ranges not used for client access.
  * April 2021, using "cross-origin-resource-policy" with "same-site" to block browsers from loading images inside another website which is not "instagram.com".
+ * June 2022, relaunch of the Instagram website in React. The JSON is now fetched in a second request.
 
 Please be aware, that you use this plugin at your own risk. Please use this plugin only in a fair manner, for example to show the images of your own Instagram account on your website and link them back to the original post on Instagram. This symbiosis should be fine for Instagram.
 

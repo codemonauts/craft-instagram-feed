@@ -13,6 +13,9 @@ use yii\base\Event;
 use codemonauts\instagramfeed\services\InstagramService;
 use codemonauts\instagramfeed\variables\InstagramFeedVariable;
 
+/**
+ * @property InstagramService $instagramService
+ */
 class InstagramFeed extends Plugin
 {
     public $hasCpSettings = true;
@@ -38,6 +41,11 @@ class InstagramFeed extends Plugin
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['instagramfeed/image/<shortCode:[^\/]+>'] = 'instagramfeed/image/image';
             $event->rules['instagramfeed/thumb/<shortCode:[^\/]+>'] = 'instagramfeed/image/thumb';
+        });
+
+        // Prefetch account after save settings
+        Event::on(Plugin::class, Plugin::EVENT_AFTER_SAVE_SETTINGS, function () {
+            InstagramFeed::getInstance()->instagramService->getFeed();
         });
     }
 

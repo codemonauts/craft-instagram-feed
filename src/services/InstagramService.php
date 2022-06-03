@@ -81,11 +81,12 @@ class InstagramService extends Component
                 Craft::$app->getCache()->set('instagram_update_error_' . $hash, true, 900);
             }
 
-            if (empty($items) && empty($cachedItems)) {
-                // If the cache is empty (e.g. first request ever) and the request fails, we are stopping requests for 15 minutes.
-                Craft::debug('Cache is empty and no items could be fetched. Stopping requests for 15 minutes.', __METHOD__);
+            if (empty($cachedItems)) {
+                // If the cache is empty (e.g. first request ever) and the request fails, we are stopping requests for some time.
+                $waitTime = $this->canUseProxy() ? 10 : 900;
+                Craft::debug('Cache is empty and no items could be fetched. Stopping requests for ' . $waitTime . ' seconds.', __METHOD__);
                 Craft::$app->getCache()->set('instagram_data_' . $hash, [], 2592000);
-                Craft::$app->getCache()->set('instagram_update_error_' . $hash, true, 900);
+                Craft::$app->getCache()->set('instagram_update_error_' . $hash, true, $waitTime);
 
                 return [];
             }
@@ -110,13 +111,13 @@ class InstagramService extends Component
     {
         $html = $this->fetchInstagramPage($account . '/');
 
-        if (false === $html) {
-            Craft::error('Instagram profile data could not be fetched. Wrong account name or not a public profile.', __METHOD__);
+        if (null === $html) {
+            Craft::warning('Instagram profile data could not be fetched.', __METHOD__);
 
             return [];
         }
 
-        if (InstagramFeed::getInstance()->getSettings()->useProxy) {
+        if ($this->canUseProxy()) {
             $obj = $this->parseProxyResponse($html);
             if (false === $obj) {
                 return [];
@@ -160,13 +161,13 @@ class InstagramService extends Component
         $path = sprintf('explore/tags/%s/', $tag);
         $html = $this->fetchInstagramPage($path);
 
-        if (false === $html) {
+        if (null === $html) {
             Craft::error('Instagram tag data could not be fetched.', __METHOD__);
 
             return [];
         }
 
-        if (InstagramFeed::getInstance()->getSettings()->useProxy) {
+        if ($this->canUseProxy()) {
             $obj = $this->parseProxyResponse($html);
             if (false === $obj) {
                 return [];
@@ -241,13 +242,13 @@ class InstagramService extends Component
      * @return false|string
      * @throws GuzzleException
      */
-    private function fetchInstagramPage(string $path): string
+    private function fetchInstagramPage(string $path): ?string
     {
         $defaultUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
 
         $settings = InstagramFeed::getInstance()->getSettings();
 
-        if ($settings->useProxy && $settings->proxyKey !== '') {
+        if ($this->canUseProxy()) {
             $url = 'https://igproxy.codemonauts.com/' . $path;
             $userAgent = $defaultUserAgent;
         } else {
@@ -265,7 +266,7 @@ class InstagramService extends Component
             ],
         ];
 
-        if ($settings->useProxy && $settings->proxyKey !== '') {
+        if ($this->canUseProxy()) {
             $guzzleOptions['headers']['Authorization'] = $settings->proxyKey;
         }
 
@@ -274,7 +275,7 @@ class InstagramService extends Component
         } catch (Exception $e) {
             Craft::error($e->getMessage(), __METHOD__);
 
-            return false;
+            return null;
         }
 
         return $response->getBody();
@@ -531,5 +532,12 @@ class InstagramService extends Component
         }
 
         return $items;
+    }
+
+    public function canUseProxy(): bool
+    {
+        $settings = InstagramFeed::getInstance()->getSettings();
+
+        return ($settings->useProxy && $settings->proxyKey !== '');
     }
 }
