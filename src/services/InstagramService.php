@@ -133,9 +133,9 @@ class InstagramService extends Component
 
         if (!array_key_exists('ProfilePage', $obj['entry_data'])) {
             if (stripos($html, 'welcome back to instagram') !== false) {
-                Craft::error('Instagram tag data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', __METHOD__);
+                Craft::error('Instagram account data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', __METHOD__);
             } else {
-                Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', __METHOD__);
+                Craft::error('Instagram account data could not be fetched. Maybe the site structure has changed.', __METHOD__);
             }
 
             return [];
@@ -244,17 +244,10 @@ class InstagramService extends Component
      */
     private function fetchInstagramPage(string $path): ?string
     {
-        $defaultUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
-
         $settings = InstagramFeed::getInstance()->getSettings();
 
-        if ($this->canUseProxy()) {
-            $url = 'https://igproxy.codemonauts.com/' . $path;
-            $userAgent = $defaultUserAgent;
-        } else {
-            $url = 'https://www.instagram.com/' . $path;
-            $userAgent = $settings->userAgent !== '' ? $settings->userAgent : $defaultUserAgent;
-        }
+        $defaultUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36';
+        $url = 'https://www.instagram.com/' . $path;
 
         $client = new Client();
 
@@ -262,12 +255,17 @@ class InstagramService extends Component
             'timeout' => $settings->timeout,
             'headers' => [
                 'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
-                'User-Agent' => $userAgent,
+                'User-Agent' => $settings->userAgent !== '' ? $settings->userAgent : $defaultUserAgent,
             ],
         ];
 
         if ($this->canUseProxy()) {
+            $referer = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
+            $url = 'https://igproxy.codemonauts.com/' . $path;
+
             $guzzleOptions['headers']['Authorization'] = $settings->proxyKey;
+            $guzzleOptions['headers']['Referer'] = $referer;
+            $guzzleOptions['headers']['User-Agent'] = $defaultUserAgent;
         }
 
         try {

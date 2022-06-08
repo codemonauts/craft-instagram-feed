@@ -1,5 +1,11 @@
 # Instagram Feed Changelog
 
+## Unreleased
+
+### Added
+
+- Set referrer in proxy requests.
+
 ## 1.1.8 - 2022-06-03 [CRITICAL]
 
 > {note} Instagram has changed the data structure on 06/01/2022. Without this update, the plugin will no longer work.
