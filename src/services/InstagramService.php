@@ -142,9 +142,9 @@ class InstagramService extends Component
 
         if (!array_key_exists('ProfilePage', $obj['entry_data'])) {
             if (stripos($html, 'welcome back to instagram') !== false) {
-                Craft::error('Instagram tag data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', 'instagramfeed');
+                Craft::error('Instagram account data could not be fetched. It seems that your IP address has been blocked by Instagram. See https://github.com/codemonauts/craft-instagram-feed/issues/32', 'instagramfeed');
             } else {
-                Craft::error('Instagram tag data could not be fetched. Maybe the site structure has changed.', 'instagramfeed');
+                Craft::error('Instagram account data could not be fetched. Maybe the site structure has changed.', 'instagramfeed');
             }
 
             return [];

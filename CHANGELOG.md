@@ -8,7 +8,7 @@
 
 - Adaptation to the changes in the data structure of Instagram on 06/01/2022.
 
-## 2.0.0 - 2021-04-29
+## 2.0.0 - 2022-04-29
 
 ### Added
 
