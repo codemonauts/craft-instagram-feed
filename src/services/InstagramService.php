@@ -250,11 +250,7 @@ class InstagramService extends Component
      */
     private function fetchInstagramPage(string $path): ?string
     {
-        if (InstagramFeed::$settings->useProxy && InstagramFeed::$settings->proxyKey !== '') {
-            $url = 'https://igproxy.codemonauts.com/' . $path;
-        } else {
-            $url = 'https://www.instagram.com/' . $path;
-        }
+        $url = 'https://www.instagram.com/' . $path;
 
         $client = new Client();
 
@@ -266,8 +262,11 @@ class InstagramService extends Component
             ],
         ];
 
-        if (InstagramFeed::$settings->useProxy && InstagramFeed::$settings->proxyKey !== '') {
+        if ($this->canUseProxy()) {
+            $url = 'https://igproxy.codemonauts.com/' . $path;
+            $referer = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
             $guzzleOptions['headers']['Authorization'] = InstagramFeed::$settings->proxyKey;
+            $guzzleOptions['headers']['Referer'] = $referer;
         }
 
         try {
