@@ -267,6 +267,7 @@ class InstagramService extends Component
             $referer = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
             $guzzleOptions['headers']['Authorization'] = InstagramFeed::$settings->proxyKey;
             $guzzleOptions['headers']['Referer'] = $referer;
+            $guzzleOptions['headers']['X-Plugin-Version'] = InstagramFeed::$plugin->getVersion();
         }
 
         try {

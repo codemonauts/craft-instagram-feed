@@ -5,6 +5,7 @@
 ### Added
 
 - Set referrer in proxy requests.
+- Set plugin version in proxy requests.
 
 ## 2.0.1 - 2022-06-03 [CRITICAL]
 
