@@ -7,6 +7,10 @@
 - Set referrer in proxy requests.
 - Set plugin version in proxy requests.
 
+### Changed
+
+- Refactored parsers to generalize it more and make it easier to adapt to new structures in the future. 
+
 ## 2.0.1 - 2022-06-03 [CRITICAL]
 
 > {note} Instagram has changed the data structure on 06/01/2022. Without this update, the plugin will no longer work.

@@ -1,0 +1,47 @@
+<?php
+
+namespace codemonauts\instagramfeed\parsers;
+
+class TagVersion1Parser extends Parser
+{
+    public function getItems(array $response): array
+    {
+        $itmes = [];
+
+        foreach ($mediaArray as $section) {
+            foreach ($section['layout_content']['medias'] as $node) {
+                if ((int)$node['media']['media_type'] === 8) {
+                    if (!isset($node['media']['carousel_media'][0]['image_versions2'])) {
+                        continue;
+                    }
+                    $item['thumbnailSource'] = $this->getBestPicture($node['media']['carousel_media'][0]['image_versions2']['candidates'], $version);
+                } else {
+                    $item['thumbnailSource'] = $this->getBestPicture($node['media']['image_versions2']['candidates'], $version);
+                }
+                $item['imageSource'] = $item['thumbnailSource'];
+                $item['likes'] = $node['media']['like_count'] ?? 0;
+                $item['comments'] = $node['media']['comment_count'] ?? 0;
+                $item['shortcode'] = $node['media']['code'];
+                $item['timestamp'] = $node['media']['taken_at'];
+                $item['caption'] = $node['media']['caption']['text'] ?? '';
+                $item['isVideo'] = (int)$node['media']['media_type'] === 2;
+                if ($item['isVideo']) {
+                    $item['hasAudio'] = isset($node['media']['has_audio']) && $node['media']['has_audio'];
+                }
+                $item['video_view_count'] = $node['media']['video_view_count'] ?? 0;
+                $items[] = $item;
+            }
+        }
+
+        return [];
+    }
+
+    protected function getPictureMapping(): array
+    {
+        return [
+            'width' => 'width',
+            'height' => 'height',
+            'url' => 'url',
+        ];
+    }
+}
