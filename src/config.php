@@ -11,13 +11,11 @@ return [
     'proxyKey' => '',
 
     // Timeout in seconds waiting for the Instagram page to load.
-    'timeout' => 5,
+    'timeout' => 10,
 
-    // Dump Instagram response to file for debugging purpose
+    // Dump Instagram response to file for debugging purpose. In an event of unknown structure, it will happen automatically.
+    // You will find the dumps in Craft's storage path in the folder runtime/instagramfeed with the timestamp as file name.
     'dump' => false,
-
-    // Using your own user agent string, remove this array key to use a common user agent of a well known browser
-    'userAgent' => '',
 
     // Use volume to store Instagram images locally, otherwise the storage path will be used
     'useVolume' => false,
