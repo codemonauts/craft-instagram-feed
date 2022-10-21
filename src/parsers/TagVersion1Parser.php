@@ -4,11 +4,20 @@ namespace codemonauts\instagramfeed\parsers;
 
 class TagVersion1Parser extends Parser
 {
+    /**
+     * @inheritDoc
+     */
     public function getItems(array $response): array
     {
-        $itmes = [];
+        $items = [];
 
-        foreach ($mediaArray as $section) {
+        if (!isset($response['entry_data']['TagPage'][0]['graphql']['hashtag']['edge_hashtag_to_media']['edges'])) {
+            return $items;
+        }
+
+        $sections = array_slice($response['data']['recent']['sections'], 0, 12);
+
+        foreach ($sections as $section) {
             foreach ($section['layout_content']['medias'] as $node) {
                 if ((int)$node['media']['media_type'] === 8) {
                     if (!isset($node['media']['carousel_media'][0]['image_versions2'])) {
@@ -33,9 +42,12 @@ class TagVersion1Parser extends Parser
             }
         }
 
-        return [];
+        return $items;
     }
 
+    /**
+     * @inheritDoc
+     */
     protected function getPictureMapping(): array
     {
         return [

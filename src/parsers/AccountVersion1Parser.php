@@ -4,6 +4,9 @@ namespace codemonauts\instagramfeed\parsers;
 
 class AccountVersion1Parser extends Parser
 {
+    /**
+     * @inheritDoc
+     */
     public function getItems(array $response): array
     {
         $items = [];
@@ -31,6 +34,9 @@ class AccountVersion1Parser extends Parser
         return $items;
     }
 
+    /**
+     * @inheritDoc
+     */
     protected function getPictureMapping(): array
     {
         return [

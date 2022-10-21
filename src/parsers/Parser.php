@@ -4,8 +4,20 @@ namespace codemonauts\instagramfeed\parsers;
 
 abstract class Parser
 {
+    /**
+     * Returns the items from the given response.
+     *
+     * @param array $response The response from Instagram.
+     *
+     * @return array
+     */
     abstract public function getItems(array $response): array;
 
+    /**
+     * Returns the picture mapping of the structure.
+     *
+     * @return array
+     */
     abstract protected function getPictureMapping(): array;
 
     /**

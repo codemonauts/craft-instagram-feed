@@ -1,11 +1,12 @@
 # Release Notes for Instagram Feed Plugin
 
-## Unreleased
+## 2.1.0 - 2022-10-21
 
 ### Added
 
 - Set referrer in proxy requests.
 - Set plugin version in proxy requests.
+- New tag structure v3.
 
 ### Changed
 

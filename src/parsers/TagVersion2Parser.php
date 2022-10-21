@@ -4,6 +4,9 @@ namespace codemonauts\instagramfeed\parsers;
 
 class TagVersion2Parser extends Parser
 {
+    /**
+     * @inheritDoc
+     */
     public function getItems(array $response): array
     {
         $items = [];
@@ -42,6 +45,9 @@ class TagVersion2Parser extends Parser
         return $items;
     }
 
+    /**
+     * @inheritDoc
+     */
     protected function getPictureMapping(): array
     {
         return [
