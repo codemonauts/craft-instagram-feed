@@ -266,6 +266,7 @@ class InstagramService extends Component
             $guzzleOptions['headers']['Authorization'] = $settings->proxyKey;
             $guzzleOptions['headers']['Referer'] = $referer;
             $guzzleOptions['headers']['User-Agent'] = $defaultUserAgent;
+            $guzzleOptions['headers']['X-Plugin-Version'] = InstagramFeed::getInstance()->getVersion();
         }
 
         try {
