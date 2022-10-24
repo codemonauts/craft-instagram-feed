@@ -1,11 +1,15 @@
 # Instagram Feed Changelog
 
-## Unreleased
+## 1.2.0 - 2022-10-21
 
 ### Added
 
 - Set referrer in proxy requests.
 - Set plugin version in proxy requests.
+
+### Changed
+
+- Refactored parsers to generalize it more and make it easier to adapt to new structures in the future.
 
 ## 1.1.8 - 2022-06-03 [CRITICAL]
 
