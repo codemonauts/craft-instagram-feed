@@ -1,5 +1,13 @@
 # Release Notes for Instagram Feed Plugin
 
+## 2.2.0 - 2024-01-04
+
+> {note} Instagram has changed the data structure. If you no longer get a feed, this update should fix the problem.
+
+### Changed
+
+- Adaptation to the recent changes in the data structure of Instagram.
+
 ## 2.1.0 - 2022-10-21
 
 ### Added

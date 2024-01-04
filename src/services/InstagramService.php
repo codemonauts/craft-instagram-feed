@@ -9,6 +9,7 @@ use craft\elements\Asset;
 use craft\helpers\FileHelper;
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\GuzzleException;
 use Throwable;
 use yii\base\InvalidConfigException;
@@ -106,14 +107,12 @@ class InstagramService extends Component
      * Fetches the feed from the public Instagram profile page.
      *
      * @param string $account The account name to fetch.
-     *
      * @return array
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \craft\errors\SiteNotFoundException
      */
     private function getInstagramAccountData(string $account): array
     {
-        $html = $this->fetchInstagramPage($account . '/');
+        $html = $this->fetchInstagramAccount($account);
 
         if (null === $html) {
             Craft::error('Instagram profile data could not be fetched.', 'instagramfeed');
@@ -121,16 +120,9 @@ class InstagramService extends Component
             return [];
         }
 
-        if ($this->canUseProxy()) {
-            $obj = $this->parseProxyResponse($html);
-            if (false === $obj) {
-                return [];
-            }
-        } else {
-            $obj = $this->parseInstagramResponse($html);
-            if (empty($obj)) {
-                return [];
-            }
+        $obj = $this->parseProxyResponse($html);
+        if (false === $obj) {
+            return [];
         }
 
         return $this->extractMedia($obj);
@@ -140,17 +132,12 @@ class InstagramService extends Component
      * Fetches the feed from the public Instagram tag page.
      *
      * @param string $tag The tag name to fetch.
-     *
      * @return array
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \craft\errors\SiteNotFoundException
      */
     private function getInstagramTagData(string $tag): array
     {
-        $tag = substr($tag, 1);
-
-        $path = sprintf('explore/tags/%s/', $tag);
-        $html = $this->fetchInstagramPage($path);
+        $html = $this->fetchInstagramTag($tag);
 
         if (null === $html) {
             Craft::error('Instagram tag data could not be fetched.', 'instagramfeed');
@@ -158,35 +145,27 @@ class InstagramService extends Component
             return [];
         }
 
-        if ($this->canUseProxy()) {
-            $obj = $this->parseProxyResponse($html);
-            if (false === $obj) {
-                return [];
-            }
-        } else {
-            $obj = $this->parseInstagramResponse($html);
-            if (empty($obj)) {
-                return [];
-            }
+        $obj = $this->parseProxyResponse($html);
+        if (false === $obj) {
+            return [];
         }
 
         return $this->extractMedia($obj);
     }
 
     /**
-     * Fetches the page from a given URL
+     * Fetches an account from Instagram.
      *
-     * @param string $path The path to fetch
-     *
+     * @param string $account The account name to fetch.
      * @return string|null
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \craft\errors\SiteNotFoundException
      */
-    private function fetchInstagramPage(string $path): ?string
+    private function fetchInstagramAccount(string $account): ?string
     {
-        $url = 'https://www.instagram.com/' . $path;
-
-        $client = new Client();
+        $cookies = new CookieJar();
+        $client = new Client([
+            'cookies' => $cookies,
+        ]);
 
         $guzzleOptions = [
             'timeout' => InstagramFeed::$settings->timeout,
@@ -196,16 +175,75 @@ class InstagramService extends Component
             ],
         ];
 
-        if ($this->canUseProxy()) {
-            $url = 'https://igproxy.codemonauts.com/' . $path;
-            $referer = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
-            $guzzleOptions['headers']['Authorization'] = InstagramFeed::$settings->proxyKey;
-            $guzzleOptions['headers']['Referer'] = $referer;
-            $guzzleOptions['headers']['X-Plugin-Version'] = InstagramFeed::$plugin->getVersion();
+        try {
+            if ($this->canUseProxy()) {
+                $url = sprintf('https://igproxy.codemonauts.com/%s/', $account);
+                $referer = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
+                $guzzleOptions['headers']['Authorization'] = InstagramFeed::$settings->proxyKey;
+                $guzzleOptions['headers']['Referer'] = $referer;
+                $guzzleOptions['headers']['X-Plugin-Version'] = InstagramFeed::$plugin->getVersion();
+                $response = $client->get($url, $guzzleOptions);
+            } else {
+                $url = sprintf('https://www.instagram.com/%s/', $account);
+                $client->get($url, $guzzleOptions);
+                $guzzleOptions['headers']['Referer'] = $url;
+                $guzzleOptions['headers']['X-IG-App-ID'] = '936619743392459';
+                $guzzleOptions['headers']['X-Requested-With'] = 'XMLHttpRequest';
+                $guzzleOptions['headers']['Origin'] = 'https://www.instagram.com';
+                $url = sprintf('https://www.instagram.com/api/v1/users/web_profile_info/?username=%s', $account);
+                $response = $client->get($url, $guzzleOptions);
+            }
+        } catch (Exception $e) {
+            Craft::error('Error fetching page: ' . $e->getMessage(), 'instagramfeed');
+
+            return null;
         }
 
+        return (string)$response->getBody();
+    }
+
+    /**
+     * Fetches a tag from Instagram.
+     *
+     * @param string $tag The tag to fetch.
+     * @return string|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    private function fetchInstagramTag(string $tag): ?string
+    {
+        $tag = substr($tag, 1);
+
+        $cookies = new CookieJar();
+        $client = new Client([
+            'cookies' => $cookies,
+        ]);
+
+        $guzzleOptions = [
+            'timeout' => InstagramFeed::$settings->timeout,
+            'headers' => [
+                'Accept-Language' => 'en-US;q=0.9,en;q=0.8',
+                'User-Agent' => self::DEFAULT_USER_AGENT,
+            ],
+        ];
+
         try {
-            $response = $client->get($url, $guzzleOptions);
+            if ($this->canUseProxy()) {
+                $url = sprintf('https://igproxy.codemonauts.com/explore/tags/%s/', $tag);
+                $referer = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
+                $guzzleOptions['headers']['Authorization'] = InstagramFeed::$settings->proxyKey;
+                $guzzleOptions['headers']['Referer'] = $referer;
+                $guzzleOptions['headers']['X-Plugin-Version'] = InstagramFeed::$plugin->getVersion();
+                $response = $client->get($url, $guzzleOptions);
+            } else {
+                $url = sprintf('https://www.instagram.com/explore/tags/%s/', $tag);
+                $client->get($url, $guzzleOptions);
+                $guzzleOptions['headers']['Referer'] = $url;
+                $guzzleOptions['headers']['X-IG-App-ID'] = '936619743392459';
+                $guzzleOptions['headers']['X-Requested-With'] = 'XMLHttpRequest';
+                $guzzleOptions['headers']['Origin'] = 'https://www.instagram.com';
+                $url = sprintf('https://www.instagram.com/api/v1/tags/logged_out_web_info/?tag_name=%s', $tag);
+                $response = $client->get($url, $guzzleOptions);
+            }
         } catch (Exception $e) {
             Craft::error('Error fetching page: ' . $e->getMessage(), 'instagramfeed');
 
@@ -229,38 +267,6 @@ class InstagramService extends Component
         }
 
         return json_decode($response, true);
-    }
-
-    /**
-     * Function to parse the response body from Instagram
-     *
-     * @param string $response Response body from Instagram
-     *
-     * @return array
-     */
-    private function parseInstagramResponse(string $response): array
-    {
-        $arr = explode('window._sharedData = ', $response);
-
-        if (!isset($arr[1])) {
-            // Check if Instagram returned a statement and not a valid page
-            $statement = json_decode($response, false);
-            if (isset($statement->errors)) {
-                Craft::error('Instagram responsed with an error: ' . implode(' ', $statement->errors->error), 'instagramfeed');
-            } else {
-                Craft::error('Unknown response from Instagram. Please check debug output in devMode.', 'instagramfeed');
-            }
-
-            $this->dumpResponse($response);
-            return [];
-        }
-
-        if (InstagramFeed::$settings->dump) {
-            $this->dumpResponse($response);
-        }
-
-        $arr = explode(';</script>', $arr[1]);
-        return json_decode($arr[0], true);
     }
 
     /**
