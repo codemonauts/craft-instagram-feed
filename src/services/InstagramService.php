@@ -121,9 +121,6 @@ class InstagramService extends Component
         }
 
         $obj = $this->parseProxyResponse($html);
-        if (false === $obj) {
-            return [];
-        }
 
         return $this->extractMedia($obj);
     }
@@ -146,9 +143,6 @@ class InstagramService extends Component
         }
 
         $obj = $this->parseProxyResponse($html);
-        if (false === $obj) {
-            return [];
-        }
 
         return $this->extractMedia($obj);
     }
@@ -266,7 +260,12 @@ class InstagramService extends Component
             $this->dumpResponse($response);
         }
 
-        return json_decode($response, true);
+        $data = json_decode($response, true);
+        if (false === $data || null === $data) {
+            return [];
+        }
+
+        return $data;
     }
 
     /**
