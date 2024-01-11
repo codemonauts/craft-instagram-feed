@@ -1,5 +1,17 @@
 # Instagram Feed Changelog
 
+# 1.3.0 - 2024-01-11
+
+> {note} Instagram has changed the data structure. If you no longer get a feed, this update should fix the problem.
+
+### Added
+
+- Add cache tag dependencies.
+
+### Changed
+
+- Adaptation to the recent changes in the data structure of Instagram.
+
 ## 1.2.0 - 2022-10-21
 
 ### Added

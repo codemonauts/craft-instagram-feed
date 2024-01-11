@@ -5,8 +5,10 @@ namespace codemonauts\instagramfeed;
 use codemonauts\instagramfeed\models\Settings;
 use Craft;
 use craft\base\Plugin;
+use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
+use craft\utilities\ClearCaches;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use yii\base\Event;
@@ -42,6 +44,16 @@ class InstagramFeed extends Plugin
             $event->rules['instagramfeed/image/<shortCode:[^\/]+>'] = 'instagramfeed/image/image';
             $event->rules['instagramfeed/thumb/<shortCode:[^\/]+>'] = 'instagramfeed/image/thumb';
         });
+
+        // Register Cache Tag Option
+        if (Craft::$app->getRequest()->isCpRequest) {
+            Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_TAG_OPTIONS, function (RegisterCacheOptionsEvent $event) {
+                $event->options[] = [
+                    'tag' => InstagramFeed::getInstance()->instagramService::CACHE_TAG,
+                    'label' => Craft::t('instagramfeed', 'Instagram data'),
+                ];
+            });
+        }
 
         // Prefetch account after save settings
         Event::on(Plugin::class, Plugin::EVENT_AFTER_SAVE_SETTINGS, function () {

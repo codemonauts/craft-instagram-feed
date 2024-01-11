@@ -11,13 +11,19 @@ class TagVersion2Parser extends Parser
     {
         $items = [];
 
-        if (!isset($response['data']['recent']['sections'])) {
+        if (!isset($response['data']['top']['sections']) && !isset($response['data']['recent']['sections'])) {
             return $items;
         }
 
-        $sections = array_slice($response['data']['recent']['sections'], 0, 8);
+        $top = array_slice($response['data']['top']['sections'], 0, 8);
+        $recent = array_slice($response['data']['recent']['sections'], 0, 8);
+
+        $sections = array_merge($top, $recent);
 
         foreach ($sections as $section) {
+            if ($section['layout_type'] !== 'media_grid') {
+                continue;
+            }
             foreach ($section['layout_content']['medias'] as $node) {
                 if ((int)$node['media']['media_type'] === 8) {
                     if (!isset($node['media']['carousel_media'][0]['image_versions2'])) {
